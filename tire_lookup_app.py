@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 # --- Page Config ---
 st.set_page_config(
     page_title="TUMS - Batik Air",
-    page_icon="batik_logo_transparent.png",
+    page_icon="my_app_icon.png",
     layout="wide"
 )
 
