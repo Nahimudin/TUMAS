@@ -70,7 +70,7 @@ if not st.session_state.logged_in:
     st.markdown(f"""
         <div style="text-align:center; margin-top:80px;">
             <img src="data:image/png;base64,{logo_base64}" width="200">
-            <h1 style="color:white; font-family: Arial, sans-serif;">TUMS Login</h1>
+            <h1 style="color:white; font-family: Arial, sans-serif;">BUTO</h1>
         </div>
     """, unsafe_allow_html=True)
 
@@ -284,4 +284,5 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
