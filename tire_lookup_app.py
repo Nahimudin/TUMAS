@@ -6,10 +6,11 @@ import json
 import streamlit.components.v1 as components
 
 # --- Page Config ---
-st.set_page_config(
-    page_title="TUMS - Batik Air",
-    page_icon="my_app_icon.png",
-    layout="wide"
+st.markdown(
+    """
+    <link rel="manifest" href="/manifest.json">
+    """,
+    unsafe_allow_html=True
 )
 
 # --- Helper to load logo as base64 ---
@@ -283,3 +284,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
