@@ -5,13 +5,16 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
-# --- Page Config ---
+st.set_page_config(page_title="My App", page_icon="🟣")
+
+# Tell browsers about the manifest.json
 st.markdown(
     """
     <link rel="manifest" href="/manifest.json">
     """,
     unsafe_allow_html=True
 )
+
 
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
@@ -284,6 +287,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
