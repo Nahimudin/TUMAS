@@ -5,24 +5,15 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
-import streamlit as st
+st.set_page_config(page_title="My App", page_icon="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/manifest.json")
 
-import streamlit as st
-
-# 🔹 Force custom app icon + manifest (overrides Streamlit default)
+# Tell browsers about the manifest.json
 st.markdown(
     """
-    <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#7b1fa2">
-    <link rel="icon" type="image/png" sizes="192x192" href="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png">
-    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-512x512.png">
+    <link rel="manifest" href="/manifest.json">
     """,
-    unsafe_allow_html=True,
+    unsafe_allow_html=True
 )
-
-# 🟣 Your existing Streamlit code continues below...
-# Example:
-st.title("TUMAS - Tyre Usage Monitoring Application System")
 
 
 # --- Helper to load logo as base64 ---
@@ -296,9 +287,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
-
-
-
-
-
