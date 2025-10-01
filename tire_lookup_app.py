@@ -20,10 +20,11 @@ logo_base64 = get_base64_image("batik_logo_transparent.png")
 manifest_dict = {
     "name": "Tire Usage Monitoring System",
     "short_name": "TUMS",
-    "start_url": "/",
+    "start_url": "/?v=2",   # bump version to force refresh
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#5C246E",
+    "orientation": "portrait",
     "icons": [
         {
             "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png",
@@ -41,15 +42,17 @@ manifest_dict = {
 # ✅ Convert to JSON safely
 manifest_json = json.dumps(manifest_dict)
 
-# ✅ Inject manifest dynamically
+# ✅ Inject manifest dynamically into <head>
 st.markdown(
     f"""
-    <link rel="manifest" id="manifest-placeholder">
     <script>
-    const manifest = {manifest_json};
-    const blob = new Blob([JSON.stringify(manifest)], {{type: 'application/json'}});
-    const manifestURL = URL.createObjectURL(blob);
-    document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+        const manifest = {manifest_json};
+        const blob = new Blob([JSON.stringify(manifest)], {{type: 'application/json'}});
+        const manifestURL = URL.createObjectURL(blob);
+        const manifestTag = document.createElement('link');
+        manifestTag.rel = 'manifest';
+        manifestTag.href = manifestURL;
+        document.head.appendChild(manifestTag);
     </script>
     """,
     unsafe_allow_html=True
@@ -302,4 +305,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
