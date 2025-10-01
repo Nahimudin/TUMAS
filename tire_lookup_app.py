@@ -15,18 +15,19 @@ manifest_dict = {
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#5C246E",
-    "icons": [
-        {
-            "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
+    "icons":"icons": [
+    {
+        "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+    },
+    {
+        "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-512x512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+    }
+]
+
 }
 
 # ✅ Inject manifest
@@ -299,3 +300,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
