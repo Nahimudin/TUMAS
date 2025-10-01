@@ -7,6 +7,23 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="TUMAS", page_icon="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png")
 
+# --- START OF WORKAROUND ---
+# Inject JavaScript to remove the '· Streamlit' suffix from the browser tab title
+components.html(
+    """
+    <script>
+        const title = window.parent.document.title;
+        if (title.endsWith("· Streamlit")) {
+            window.parent.document.title = title.replace("· Streamlit", "").trim();
+        }
+    </script>
+    """,
+    height=0,  # Set height to 0 so it doesn't take up space in the app
+)
+# --- END OF WORKAROUND ---
+
+# Tell browsers about the manifest.json
+
 # Tell browsers about the manifest.json
 st.markdown(
     """
@@ -287,4 +304,5 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
