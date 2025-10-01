@@ -5,6 +5,13 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
+# --- Inject PWA manifest + icons ---
+st.markdown("""
+    <link rel="manifest" href="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/manifest.json">
+    <meta name="theme-color" content="#5C246E">
+    <link rel="apple-touch-icon" href="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png">
+""", unsafe_allow_html=True)
+
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
     try:
@@ -16,50 +23,6 @@ def get_base64_image(img_path):
 
 logo_base64 = get_base64_image("batik_logo_transparent.png")
 
-# ✅ Build manifest as Python dict (using GitHub URLs for icons)
-manifest_dict = {
-    "name": "Tire Usage Monitoring System",
-    "short_name": "TUMS",
-    "start_url": "/?v=2",   # bump version to force refresh
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#5C246E",
-    "orientation": "portrait",
-    "icons": [
-        {
-            "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-512x512.png",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
-}
-
-# ✅ Convert to JSON safely
-manifest_json = json.dumps(manifest_dict)
-
-# ✅ Inject manifest dynamically into <head>
-st.markdown(
-    f"""
-    <script>
-        const manifest = {manifest_json};
-        const blob = new Blob([JSON.stringify(manifest)], {{type: 'application/json'}});
-        const manifestURL = URL.createObjectURL(blob);
-        const manifestTag = document.createElement('link');
-        manifestTag.rel = 'manifest';
-        manifestTag.href = manifestURL;
-        document.head.appendChild(manifestTag);
-    </script>
-    """,
-    unsafe_allow_html=True
-)
-st.title("TUMAS - Batik Air")
-st.write("✅ This version includes a custom app icon for Android Home Screen.")
-st.write("Try adding this app to your Home Screen and check if the Batik Air logo shows.")
 # --- Load user database from Excel ---
 USERS_FILE = "users.xlsx"
 try:
@@ -307,4 +270,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
