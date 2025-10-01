@@ -7,6 +7,15 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="My App", page_icon="🟣")
 
+# Tell browsers about the manifest.json
+st.markdown(
+    """
+    <link rel="manifest" href="/manifest.json">
+    """,
+    unsafe_allow_html=True
+)
+
+
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
     try:
@@ -17,49 +26,6 @@ def get_base64_image(img_path):
         return ""
 
 logo_base64 = get_base64_image("batik_logo_transparent.png")
-
-# ✅ NEW: load two app icons for PWA
-icon192 = get_base64_image("icons/icon-192x192.png")
-icon512 = get_base64_image("icons/icon-512x512.png")
-
-# ✅ Build manifest as Python dict
-manifest_dict = {
-    "name": "Tire Usage Monitoring System",
-    "short_name": "TUMS",
-    "start_url": "/",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#5C246E",
-    "icons": [
-        {
-            "src": f"data:image/png;base64,{icon192}",
-            "sizes": "192x192",
-            "type": "image/png"
-        },
-        {
-            "src": f"data:image/png;base64,{icon512}",
-            "sizes": "512x512",
-            "type": "image/png"
-        }
-    ]
-}
-
-# ✅ Convert to JSON safely
-manifest_json = json.dumps(manifest_dict)
-
-# ✅ Inject manifest dynamically
-st.markdown(
-    f"""
-    <link rel="manifest" id="manifest-placeholder">
-    <script>
-    const manifest = {manifest_json};
-    const blob = new Blob([JSON.stringify(manifest)], {{type: 'application/json'}});
-    const manifestURL = URL.createObjectURL(blob);
-    document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
-    </script>
-    """,
-    unsafe_allow_html=True
-)
 
 # --- Load user database from Excel ---
 USERS_FILE = "users.xlsx"
@@ -125,7 +91,7 @@ if not st.session_state.logged_in:
                     st.session_state.logged_in = True
                     st.session_state.username = username_input
                     st.success("✅ Login successful!")
-                    st.rerun()
+                    st.rerun()   # <-- rerun instead of stop
                 else:
                     st.error("❌ Incorrect password")
             else:
@@ -133,7 +99,7 @@ if not st.session_state.logged_in:
 
 # --- MAIN APP AFTER LOGIN ---
 else:
-    # Header
+    # Header (instead of sidebar)
     st.markdown(f"""
         <div style="text-align:center; margin-bottom:20px;">
             <img src="data:image/png;base64,{logo_base64}" width="120">
@@ -155,6 +121,17 @@ else:
         with col2:
             if st.button("❌ Cancel"):
                 st.stop()
+
+    # HOME PAGE (still here in case needed later)
+    elif page == "Home":
+        st.markdown(f"""
+            <div class="homepage-card">
+                <img src="data:image/png;base64,{logo_base64}" width="180">
+                <h1 class="homepage-title">Tire Usage Monitoring System (TUMS)</h1>
+                <p class="homepage-subtitle">Batik Air • Technical Services • Support Workshop</p>
+                <a href="?page=Search" class="cta-btn">🔍 Search Tire Data</a>
+            </div>
+        """, unsafe_allow_html=True)
 
     # SEARCH PAGE
     elif page == "Search":
@@ -180,12 +157,13 @@ else:
                         max_cycles = 300
                         usage = min((row.get('Cycles Since Installed',0)/max_cycles)*100,100) if pd.notna(row.get('Cycles Since Installed')) else 0
 
+                        # --- Traffic-light color logic ---
                         if usage >= 90:
-                            donut_color = "#FF0000"
+                            donut_color = "#FF0000"  # red
                         elif usage >= 70:
-                            donut_color = "#F5D104"
+                            donut_color = "#F5D104"  # yellow
                         else:
-                            donut_color = "#28A745"
+                            donut_color = "#28A745"  # green
 
                         col1, col2 = st.columns([2,1])
                         with col1:
@@ -202,6 +180,7 @@ else:
                                 </div>
                             """, unsafe_allow_html=True)
                         with col2:
+                            # --- Animated donut via embedded Plotly.js ---
                             chart_id = f"chart_{id(row)}"
                             js_usage = json.dumps(usage)
                             js_color = json.dumps(donut_color)
