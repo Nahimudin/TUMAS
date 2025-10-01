@@ -57,7 +57,9 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
+st.title("TUMAS - Batik Air")
+st.write("✅ This version includes a custom app icon for Android Home Screen.")
+st.write("Try adding this app to your Home Screen and check if the Batik Air logo shows.")
 # --- Load user database from Excel ---
 USERS_FILE = "users.xlsx"
 try:
@@ -305,3 +307,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
