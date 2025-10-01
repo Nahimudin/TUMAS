@@ -14,7 +14,7 @@ components.html(
     <script>
         const title = window.parent.document.title;
         if (title.endsWith("· Streamlit")) {
-            window.parent.document.title = title.replace("· Streamlit", "").trim();
+            window.parent.document.title = title.replace("· Streamlit", "BATIK").trim();
         }
     </script>
     """,
@@ -302,6 +302,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
