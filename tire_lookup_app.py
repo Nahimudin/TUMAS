@@ -20,14 +20,12 @@ components.html(
     """,
     height=0,  # Set height to 0 so it doesn't take up space in the app
 )
-# --- END OF WORKAROUND ---
+# Assuming your manifest.json is directly available via a raw GitHub link
+MANIFEST_URL = "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/manifest.json" 
 
-# Tell browsers about the manifest.json
-
-# Tell browsers about the manifest.json
 st.markdown(
-    """
-    <link rel="manifest" href="/manifest.json">
+    f"""
+    <link rel="manifest" href="{MANIFEST_URL}">
     """,
     unsafe_allow_html=True
 )
@@ -304,5 +302,6 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
