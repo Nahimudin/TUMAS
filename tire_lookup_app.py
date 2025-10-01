@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="My App", page_icon="🟣")
+st.set_page_config(page_title="TUMAS", page_icon="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png")
 
 # Tell browsers about the manifest.json
 st.markdown(
@@ -287,3 +287,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
