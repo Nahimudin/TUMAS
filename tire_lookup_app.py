@@ -7,37 +7,6 @@ import streamlit.components.v1 as components
 
 st.set_page_config(page_title="My App", page_icon="🟣")
 
-# ✅ Manifest with custom icons
-manifest_dict = {
-    "name": "Tire Usage Monitoring System",
-    "short_name": "TUMS",
-    "start_url": ".",
-    "display": "standalone",
-    "background_color": "#ffffff",
-    "theme_color": "#5C246E",
-    "icons":"icons": [
-    {
-        "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png",
-        "sizes": "192x192",
-        "type": "image/png"
-    },
-    {
-        "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-512x512.png",
-        "sizes": "512x512",
-        "type": "image/png"
-    }
-]
-
-}
-
-# ✅ Inject manifest
-st.markdown(
-    f"""
-    <link rel="manifest" href="data:application/manifest+json,{json.dumps(manifest_dict)}">
-    """,
-    unsafe_allow_html=True
-)
-
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
     try:
@@ -49,9 +18,44 @@ def get_base64_image(img_path):
 
 logo_base64 = get_base64_image("batik_logo_transparent.png")
 
-# ✅ NEW: load two app icons for PWA (not used anymore, but kept for safety)
-icon192 = get_base64_image("icons/icon-192x192.png")
-icon512 = get_base64_image("icons/icon-512x512.png")
+# ✅ Build manifest as Python dict (using GitHub URLs for icons)
+manifest_dict = {
+    "name": "Tire Usage Monitoring System",
+    "short_name": "TUMS",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#5C246E",
+    "icons": [
+        {
+            "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-512x512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
+
+# ✅ Convert to JSON safely
+manifest_json = json.dumps(manifest_dict)
+
+# ✅ Inject manifest dynamically
+st.markdown(
+    f"""
+    <link rel="manifest" id="manifest-placeholder">
+    <script>
+    const manifest = {manifest_json};
+    const blob = new Blob([JSON.stringify(manifest)], {{type: 'application/json'}});
+    const manifestURL = URL.createObjectURL(blob);
+    document.getElementById('manifest-placeholder').setAttribute('href', manifestURL);
+    </script>
+    """,
+    unsafe_allow_html=True
+)
 
 # --- Load user database from Excel ---
 USERS_FILE = "users.xlsx"
@@ -300,4 +304,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
