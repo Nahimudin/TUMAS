@@ -5,29 +5,15 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="TUMAS", page_icon="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png")
-
-# --- START OF WORKAROUND ---
-# Inject JavaScript to remove the '· Streamlit' suffix from the browser tab title
-components.html(
-    """
-    <script>
-        const title = window.parent.document.title;
-        if (title.endsWith("· Streamlit")) {
-            window.parent.document.title = title.replace("· Streamlit", "BATIK").trim();
-        }
-    </script>
-    """,
-    height=0,  # Set height to 0 so it doesn't take up space in the app
-)
-# Assuming your manifest.json is directly available via a raw GitHub link
-MANIFEST_URL = "https://raw.githubusercontent.com/Nahimudin/TUMAS/main/manifest.json" 
+import streamlit as st
 
 st.markdown(
-    f"""
-    <link rel="manifest" href="{MANIFEST_URL}">
+    """
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#7b1fa2">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/Nahimudin/TUMAS/main/icons/icon-192x192.png">
     """,
-    unsafe_allow_html=True
+    unsafe_allow_html=True,
 )
 
 
@@ -302,6 +288,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
