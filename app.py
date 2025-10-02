@@ -5,17 +5,6 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="My App", page_icon="🟣")
-
-# --- Helper to load logo as base64 ---
-def get_base64_image(img_path):
-    try:
-        with open(img_path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except FileNotFoundError:
-        st.error(f"⚠️ Logo file '{img_path}' not found.")
-        return ""
-
 logo_base64 = get_base64_image("batik_logo_transparent.png")
 
 # --- Load user database from Excel ---
@@ -278,5 +267,6 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
