@@ -6,7 +6,14 @@ import json
 import streamlit.components.v1 as components
 
 st.set_page_config(page_title="TUMAS", page_icon="icon-192x192.png")
-
+st.header("")
+hide_st_style = """
+              <style>
+              #MainMenu {visiblity: hidden;}
+              footer {visiblity: hidden;}
+             header {visiblity: hidden;}
+             </style>
+             """
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
     try:
@@ -278,6 +285,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
