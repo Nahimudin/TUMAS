@@ -5,7 +5,7 @@ import plotly.graph_objects as go
 import json
 import streamlit.components.v1 as components
 
-st.set_page_config(page_title="My App", page_icon="🟣")
+st.set_page_config(page_title="TUMAS", page_icon="icon.pg")
 
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
@@ -278,6 +278,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
