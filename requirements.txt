@@ -2,4 +2,3 @@ flask
 streamlit
 pandas
 plotly
-base64
