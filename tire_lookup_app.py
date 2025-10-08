@@ -140,6 +140,8 @@ else:
             df = pd.read_excel(FILE, sheet_name="Sheet1", header=1)
             df.columns = df.columns.str.strip().str.replace("\n"," ").str.replace("  "," ")
             df = df.rename(columns={df.columns[0]: "Installed Date"})
+            df.columns = df.columns.str.strip().str.replace("\n", " ").str.replace("  ", " ")
+
         except Exception as e:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
@@ -290,6 +292,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
