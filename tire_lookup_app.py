@@ -134,7 +134,7 @@ else:
     # SEARCH PAGE
     elif page == "Search":
         st.subheader("🔍 Search Tire by Serial Number (S/N)")
-        FILE = "TUMA dummy database.xlsx"
+        FILE = "TUMAS-DATABASE.xlsx"
 
         try:
             df = pd.read_excel(FILE, sheet_name="Sheet1", header=1)
@@ -168,9 +168,17 @@ else:
                             st.markdown(f"""
                                 <div class="result-card">
                                     <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
-                                    <p><b style="color:#5C246E;">📌 Tire On:</b> <span style="color:#000000;">{row.get('Tire On','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Date In:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Date Out:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Repair Order No:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 W/O No:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Part No:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">🔧 Serial No:</b> <span style="color:#000000;">{row.get('S/N','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Installed Date:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 TC Remark:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Tire On','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">🔧 AJL No:</b> <span style="color:#000000;">{row.get('S/N','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> <span style="color:#000000;">{row.get('Cycles Since Installed','0')}</span></p>
                                     <p><b style="color:#5C246E;">♻️ Retread:</b> <span style="color:#000000;">{row.get('Retread','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">📝 Remark:</b> <span style="color:#000000;">{row.get('Remark','None')}</span></p>
@@ -285,6 +293,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
