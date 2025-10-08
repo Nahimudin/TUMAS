@@ -168,20 +168,17 @@ else:
                             st.markdown(f"""
                                 <div class="result-card">
                                     <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
-                                    <p><b style="color:#5C246E;">📆 Date In:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Date Out:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Repair Order No:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 W/O No:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Part No:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">🔧 Serial No:</b> <span style="color:#000000;">{row.get('S/N','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 TC Remark:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Tire On','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">🔧 AJL No:</b> <span style="color:#000000;">{row.get('S/N','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Installed Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Date In:</b> <span style="color:#000000;">{row.get(' Date In','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Date Out:</b> <span style="color:#000000;">{row.get('DATE OUT','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Repair Order No:</b> <span style="color:#000000;">{row.get('Repair Order No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 W/O No:</b> <span style="color:#000000;">{row.get('W/O No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Part No:</b> <span style="color:#000000;">{row.get('P/No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">🔧 Serial No:</b> <span style="color:#000000;">{row.get('SN','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 TC Remark:</b> <span style="color:#000000;">{row.get('Remark','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Removal Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Ex-Aircraft','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">🔧 AJL No:</b> <span style="color:#000000;">{row.get('AJL No','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> <span style="color:#000000;">{row.get('Cycles Since Installed','0')}</span></p>
-                                    <p><b style="color:#5C246E;">♻️ Retread:</b> <span style="color:#000000;">{row.get('Retread','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📝 Remark:</b> <span style="color:#000000;">{row.get('Remark','None')}</span></p>
                                     <p><b style="color:#5C246E;">📊 Usage:</b> <span style="color:#000000;">{usage:.1f}% of {max_cycles} cycles</span></p>
                                 </div>
                             """, unsafe_allow_html=True)
@@ -293,6 +290,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
