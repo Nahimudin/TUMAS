@@ -148,7 +148,7 @@ else:
 
         if serial:
             if not df.empty:
-                result = df[df[SN].astype(str).str.contains(serial.strip(), case=False, na=False)]
+                result = df[df["SN"].astype(str).str.contains(serial.strip(), case=False, na=False)]
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} record(s) for Serial: {serial.upper()}")
                     for _, row in result.iterrows():
@@ -290,6 +290,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
