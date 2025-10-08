@@ -133,7 +133,7 @@ else:
 
     # SEARCH PAGE
     elif page == "Search":
-        st.subheader("🔍 Search Tire by Serial Number (SN)")
+        st.subheader("🔍 Search Tire by Serial Number ("SN")")
         FILE = "TUMAS-DATABASE.xlsx"
 
         try:
@@ -292,3 +292,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
