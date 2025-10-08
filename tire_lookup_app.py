@@ -292,5 +292,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
-this my new database and old code please rechehck the code and fix the search part without changing anything else
