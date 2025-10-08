@@ -1,4 +1,3 @@
-```python
 import streamlit as st
 import pandas as pd
 import base64
@@ -26,7 +25,6 @@ def get_base64_image(img_path):
 
 # Now we can safely call it
 logo_base64 = get_base64_image("batik_logo_transparent.png")
-
 # --- Load user database from Excel ---
 USERS_FILE = "users.xlsx"
 try:
@@ -91,7 +89,7 @@ if not st.session_state.logged_in:
                     st.session_state.logged_in = True
                     st.session_state.username = username_input
                     st.success("✅ Login successful!")
-                    st.rerun()
+                    st.rerun()   # <-- rerun instead of stop
                 else:
                     st.error("❌ Incorrect password")
             else:
@@ -99,6 +97,7 @@ if not st.session_state.logged_in:
 
 # --- MAIN APP AFTER LOGIN ---
 else:
+    # Header (instead of sidebar)
     st.markdown(f"""
         <div style="text-align:center; margin-bottom:20px;">
             <img src="data:image/png;base64,{logo_base64}" width="120">
@@ -121,6 +120,17 @@ else:
             if st.button("❌ Cancel"):
                 st.stop()
 
+    # HOME PAGE (still here in case needed later)
+    elif page == "Home":
+        st.markdown(f"""
+            <div class="homepage-card">
+                <img src="data:image/png;base64,{logo_base64}" width="180">
+                <h1 class="homepage-title">Tire Usage Monitoring System (TUMS)</h1>
+                <p class="homepage-subtitle">Batik Air • Technical Services • Support Workshop</p>
+                <a href="?page=Search" class="cta-btn">🔍 Search Tire Data</a>
+            </div>
+        """, unsafe_allow_html=True)
+
     # SEARCH PAGE
     elif page == "Search":
         st.subheader("🔍 Search Tire by Serial Number (SN)")
@@ -131,6 +141,7 @@ else:
             df.columns = df.columns.str.strip().str.replace("\n"," ").str.replace("  "," ")
             df = df.rename(columns={df.columns[0]: "Installed Date"})
             df.columns = df.columns.str.strip().str.replace("\n", " ").str.replace("  ", " ")
+
         except Exception as e:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
@@ -139,51 +150,46 @@ else:
 
         if serial:
             if not df.empty:
-                # --- Detect SN column automatically ---
-                sn_col = next((col for col in df.columns if col.strip().lower() in ["sn", "s/n"]), None)
-
-                if sn_col:
-                    result = df[df[sn_col].astype(str).str.contains(serial.strip(), case=False, na=False)]
-                else:
-                    st.error("❌ No 'S/N' or 'SN' column found in the Excel file.")
-                    result = pd.DataFrame()
-
+                result = df[df["SN"].astype(str).str.contains(serial.strip(), case=False, na=False)]
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} record(s) for Serial: {serial.upper()}")
                     for _, row in result.iterrows():
                         max_cycles = 300
                         usage = min((row.get('Cycles Since Installed',0)/max_cycles)*100,100) if pd.notna(row.get('Cycles Since Installed')) else 0
 
+                        # --- Traffic-light color logic ---
                         if usage >= 90:
-                            donut_color = "#FF0000"
+                            donut_color = "#FF0000"  # red
                         elif usage >= 70:
-                            donut_color = "#F5D104"
+                            donut_color = "#F5D104"  # yellow
                         else:
-                            donut_color = "#28A745"
+                            donut_color = "#28A745"  # green
 
                         col1, col2 = st.columns([2,1])
                         with col1:
                             st.markdown(f"""
                                 <div class="result-card">
                                     <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
-                                    <p><b style="color:#5C246E;">📆 Date In:</b> {row.get(' Date In','N/A')}</p>
-                                    <p><b style="color:#5C246E;">📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
-                                    <p><b style="color:#5C246E;">📆 Repair Order No:</b> {row.get('Repair Order No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">📆 W/O No:</b> {row.get('W/O No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">📆 Part No:</b> {row.get('P/No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">🔧 Serial No:</b> {row.get(sn_col,'N/A')}</p>
-                                    <p><b style="color:#5C246E;">📆 TC Remark:</b> {row.get('Remark','N/A')}</p>
-                                    <p><b style="color:#5C246E;">📆 Removel Date:</b> {row.get('Removal Date','N/A')}</p>
-                                    <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
-                                    <p><b style="color:#5C246E;">🔧 AJL No:</b> {row.get('AJL No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
-                                    <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                                    <p><b style="color:#5C246E;">📆 Date In:</b> <span style="color:#000000;">{row.get(' Date In','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Date Out:</b> <span style="color:#000000;">{row.get('DATE OUT','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Repair Order No:</b> <span style="color:#000000;">{row.get('Repair Order No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 W/O No:</b> <span style="color:#000000;">{row.get('W/O No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Part No:</b> <span style="color:#000000;">{row.get('P/No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">🔧 Serial No:</b> <span style="color:#000000;">{row.get('SN','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 TC Remark:</b> <span style="color:#000000;">{row.get('Remark','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Removal Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Ex-Aircraft','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">🔧 AJL No:</b> <span style="color:#000000;">{row.get('AJL No','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> <span style="color:#000000;">{row.get('Cycles Since Installed','0')}</span></p>
+                                    <p><b style="color:#5C246E;">📊 Usage:</b> <span style="color:#000000;">{usage:.1f}% of {max_cycles} cycles</span></p>
                                 </div>
                             """, unsafe_allow_html=True)
                         with col2:
+                            # --- Animated donut via embedded Plotly.js ---
                             chart_id = f"chart_{id(row)}"
                             js_usage = json.dumps(usage)
                             js_color = json.dumps(donut_color)
+
                             html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -194,15 +200,34 @@ else:
   var chartDiv = document.getElementById('{chart_id}');
 
   var data = [
-    {{ values: [1], type: 'pie', marker: {{ colors: ['black'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false, sort: false }},
-    {{ values: [0, 100], type: 'pie', hole: 0.7, marker: {{ colors: [donutColor, '#FFFFFF'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false, sort: false }}
+    {{
+      values: [1],
+      type: 'pie',
+      marker: {{ colors: ['black'] }},
+      textinfo: 'none',
+      hoverinfo: 'skip',
+      showlegend: false,
+      sort: false
+    }},
+    {{
+      values: [0, 100],
+      type: 'pie',
+      hole: 0.7,
+      marker: {{ colors: [donutColor, '#FFFFFF'] }},
+      textinfo: 'none',
+      hoverinfo: 'skip',
+      showlegend: false,
+      sort: false
+    }}
   ];
 
   var layout = {{
     annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}],
     margin: {{t:0,b:0,l:0,r:0}},
-    height: 250, width: 250,
-    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+    height: 250,
+    width: 250,
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)'
   }};
 
   Plotly.newPlot(chartDiv, data, layout, {{displayModeBar:false}}).then(function() {{
@@ -211,12 +236,19 @@ else:
     for (var i = 0; i <= max; i++) {{
       frames.push({{
         name: 'f' + i,
-        data: [{{ values: [1] }}, {{ values: [i, 100 - i] }}],
-        layout: {{ annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}] }}
+        data: [
+          {{ values: [1] }},
+          {{ values: [i, 100 - i] }}
+        ],
+        layout: {{
+          annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}]
+        }}
       }});
     }}
+
     var totalDuration = 800;
     var frameDuration = Math.max(8, Math.floor(totalDuration / Math.max(1, frames.length)));
+
     Plotly.animate(chartDiv, frames, {{
       transition: {{ duration: frameDuration, easing: 'cubic-in-out' }},
       frame: {{ duration: frameDuration, redraw: true }},
@@ -234,6 +266,7 @@ else:
         else:
             st.info("ℹ️ Please enter a Serial Number above to search for tire details.")
 
+    # ABOUT PAGE
     elif page == "About":
         st.markdown(f"""
             <div class="about-card">
@@ -252,10 +285,12 @@ else:
             </div>
         """, unsafe_allow_html=True)
 
+# --- FOOTER ---
 st.markdown("""
 <div class="footer">
     © 2025 Batik Air • Technical Services • Support Workshop <br>
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-```
+
+this my new database and old code please rechehck the code and fix the search part without changing anything else
