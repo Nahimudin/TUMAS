@@ -150,8 +150,6 @@ else:
                 .str.replace('\n', ' ', regex=False)
             )
 
-            st.write("Columns detected:", [repr(c) for c in df.columns.tolist()])
-
         except Exception as e:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
@@ -303,3 +301,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
