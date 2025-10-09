@@ -239,8 +239,7 @@ else:
     var max = Math.round(Math.min(Math.max(usage,0),100));
     var frames = [];
     for (var i = 0; i <= max; i++) {{
-      frames.push({{ name: 'f'+i, data: [{{ values:[1]}}, {{ values:[i,100-i]} }], layout: {{ annotations:[{{ text:i+'%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}] }} }});
-    }}
+    frames.push({{ name: 'f'+i, data: [{{{{ values:[1] }}}}, {{{{ values:[i,100-i] }}}}], layout: {{{{ annotations:[{{{{ text:i+'%', x:0.5, y:0.5, font:{{{{size:20, color:'white'}}}}, showarrow:false }}}}] }}}} }});
     Plotly.animate(chartDiv, frames, {{ transition: {{duration:10}}, frame: {{duration:10, redraw:true}}, mode:'immediate' }});
   }});
 }})();
@@ -273,3 +272,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
