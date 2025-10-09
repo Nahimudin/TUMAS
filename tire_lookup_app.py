@@ -14,6 +14,7 @@ hide_st_style = """
              header {visiblity: hidden;}
              </style>
              """
+
 # --- Helper to load logo as base64 ---
 def get_base64_image(img_path):
     try:
@@ -25,6 +26,7 @@ def get_base64_image(img_path):
 
 # Now we can safely call it
 logo_base64 = get_base64_image("batik_logo_transparent.png")
+
 # --- Load user database from Excel ---
 USERS_FILE = "users.xlsx"
 try:
@@ -132,27 +134,27 @@ else:
         """, unsafe_allow_html=True)
 
     # SEARCH PAGE
-  elif page == "Search":
-    st.subheader("🔍 Search Tire by Serial Number (SN)")
-    FILE = "TUMAS-DATABASE.xlsx"
+    elif page == "Search":
+        st.subheader("🔍 Search Tire by Serial Number (SN)")
+        FILE = "TUMAS-DATABASE.xlsx"
 
-    try:
-        # ✅ Use correct header row and clean names
-        df = pd.read_excel(FILE, sheet_name="Sheet1", header=0)
-        df.columns = (
-            df.columns
-            .astype(str)
-            .str.strip()
-            .str.replace('"', '', regex=False)
-            .str.replace("'", '', regex=False)
-            .str.replace('\n', ' ', regex=False)
-        )
+        try:
+            # ✅ Use correct header row and clean names
+            df = pd.read_excel(FILE, sheet_name="Sheet1", header=0)
+            df.columns = (
+                df.columns
+                .astype(str)
+                .str.strip()
+                .str.replace('"', '', regex=False)
+                .str.replace("'", '', regex=False)
+                .str.replace('\n', ' ', regex=False)
+            )
 
-        st.write("Columns detected:", [repr(c) for c in df.columns.tolist()])
+            st.write("Columns detected:", [repr(c) for c in df.columns.tolist()])
 
-    except Exception as e:
-        st.error(f"⚠️ Could not load tire database: {e}")
-        df = pd.DataFrame()
+        except Exception as e:
+            st.error(f"⚠️ Could not load tire database: {e}")
+            df = pd.DataFrame()
 
         serial = st.text_input("Enter Tire Serial Number:")
         st.write("Columns detected:", [repr(c) for c in df.columns.tolist()])
@@ -164,7 +166,7 @@ else:
                     st.success(f"✅ Found {len(result)} record(s) for Serial: {serial.upper()}")
                     for _, row in result.iterrows():
                         max_cycles = 300
-                        usage = min((row.get('Cycles Since Installed',0)/max_cycles)*100,100) if pd.notna(row.get('Cycles Since Installed')) else 0
+                        usage = min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100) if pd.notna(row.get('Cycles Since Installed')) else 0
 
                         # --- Traffic-light color logic ---
                         if usage >= 90:
@@ -174,7 +176,7 @@ else:
                         else:
                             donut_color = "#28A745"  # green
 
-                        col1, col2 = st.columns([2,1])
+                        col1, col2 = st.columns([2, 1])
                         with col1:
                             st.markdown(f"""
                                 <div class="result-card">
@@ -186,7 +188,7 @@ else:
                                     <p><b style="color:#5C246E;">📆 Part No:</b> <span style="color:#000000;">{row.get('P/No','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">🔧 Serial No:</b> <span style="color:#000000;">{row.get('SN','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">📆 TC Remark:</b> <span style="color:#000000;">{row.get('Remark','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Removel Date Date:</b> <span style="color:#000000;">{row.get('Removal Date','N/A')}</span></p>
+                                    <p><b style="color:#5C246E;">📆 Removal Date:</b> <span style="color:#000000;">{row.get('Removal Date','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Ex-Aircraft','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">🔧 AJL No:</b> <span style="color:#000000;">{row.get('AJL No','N/A')}</span></p>
                                     <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> <span style="color:#000000;">{row.get('Cycles Since Installed','0')}</span></p>
@@ -301,5 +303,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
-
