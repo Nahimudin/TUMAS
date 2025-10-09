@@ -132,7 +132,7 @@ else:
         """, unsafe_allow_html=True)
 
     # SEARCH PAGE
-    elif page == "Search":
+  elif page == "Search":
     st.subheader("🔍 Search Tire by Serial Number (SN)")
     FILE = "TUMAS-DATABASE.xlsx"
 
@@ -301,4 +301,5 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
