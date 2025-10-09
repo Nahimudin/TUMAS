@@ -189,39 +189,38 @@ else:
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} matching record(s).")
 
-                    # Build HTML clickable table (rows link to ?selected=index)
-                    # Keep minimal styling so design remains identical
+                    # store last result in session for detail view after click
+                    st.session_state._last_search_result = result
+
+                    # --- Column selector (appears after search) ---
+                    available_cols = list(result.columns)
+                    # default selection as requested: SN, P/No, W/O No, Description, Date In
+                    default_cols = [c for c in ["SN", "P/No", "W/O No", "Description", "Date In"] if c in available_cols]
+                    selected_cols = st.multiselect("Choose columns to display in results table:", options=available_cols, default=default_cols)
+
+                    if not selected_cols:
+                        st.warning("⚠️ No columns selected — showing default columns.")
+                        selected_cols = default_cols
+
+                    # Build HTML clickable table (rows link to ?selected=index) using selected_cols order
                     table_html = "<table class='tumas-table'>"
                     table_html += "<thead><tr>"
-                    table_html += "<th>SN</th><th>P/No</th><th>W/O No</th><th>Ex-Aircraft</th><th>Cycles</th>"
+                    for col in selected_cols:
+                        table_html += f"<th>{col}</th>"
                     table_html += "</tr></thead><tbody>"
 
                     for i, row in result.iterrows():
-                        sn = str(row.get('SN', ''))
-                        pno = str(row.get('P/No', ''))
-                        wo = str(row.get('W/O No', ''))
-                        exac = str(row.get('Ex-Aircraft', ''))
-                        cycles = str(row.get('Cycles Since Installed', ''))
-
-                        # link to same page with query param 'selected'
+                        table_html += "<tr class='tumas-tr'>"
                         link = f"?selected={i}"
-                        # full row as link
-                        table_html += (
-                            f"<tr class='tumas-tr'>"
-                            f"<td><a class='tumas-row-link' href='{link}'>{sn}</a></td>"
-                            f"<td><a class='tumas-row-link' href='{link}'>{pno}</a></td>"
-                            f"<td><a class='tumas-row-link' href='{link}'>{wo}</a></td>"
-                            f"<td><a class='tumas-row-link' href='{link}'>{exac}</a></td>"
-                            f"<td><a class='tumas-row-link' href='{link}'>{cycles}</a></td>"
-                            f"</tr>"
-                        )
+                        for col in selected_cols:
+                            val = str(row.get(col, ''))
+                            # each cell links to same selected param so clicking anywhere navigates
+                            table_html += f"<td><a class='tumas-row-link' href='{link}'>{val}</a></td>"
+                        table_html += "</tr>"
 
                     table_html += "</tbody></table>"
 
                     st.markdown(table_html, unsafe_allow_html=True)
-
-                    # save result in session to use after navigation
-                    st.session_state._last_search_result = result
 
                 else:
                     st.error("❌ No matching records found.")
@@ -253,7 +252,6 @@ else:
                         .str.replace("'", '', regex=False)
                         .str.replace('\n', ' ', regex=False)
                     )
-                    # if we have a full df, then selected_param should refer to result index — cannot reliably map
                     rs = None
                 except Exception:
                     rs = None
