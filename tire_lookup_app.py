@@ -61,12 +61,12 @@ if page == "🏠 Home":
     """)
 
 # --- Search Page ---
-elif page == "🔍 Search":
+elif page == "Search":
     st.subheader("🔍 Search Tire by Serial Number (SN)")
     FILE = "TUMAS-DATABASE.xlsx"
 
     try:
-        # ✅ Read Excel with correct header and clean columns
+        # ✅ Use correct header row and clean names
         df = pd.read_excel(FILE, sheet_name="Sheet1", header=0)
         df.columns = (
             df.columns
@@ -77,11 +77,12 @@ elif page == "🔍 Search":
             .str.replace('\n', ' ', regex=False)
         )
 
-        st.write("✅ Columns detected:", [repr(c) for c in df.columns.tolist()])
+        st.write("Columns detected:", [repr(c) for c in df.columns.tolist()])
 
     except Exception as e:
         st.error(f"⚠️ Could not load tire database: {e}")
         df = pd.DataFrame()
+
 
     # Only continue if the file was loaded
     if not df.empty:
