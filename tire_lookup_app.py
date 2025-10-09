@@ -155,7 +155,6 @@ else:
             df = pd.DataFrame()
 
         serial = st.text_input("Enter Tire Serial Number:")
-        st.write("Columns detected:", [repr(c) for c in df.columns.tolist()])
 
         if serial:
             if not df.empty:
@@ -301,4 +300,5 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
