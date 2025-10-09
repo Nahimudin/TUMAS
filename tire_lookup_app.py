@@ -24,7 +24,6 @@ def get_base64_image(img_path):
         st.error(f"⚠️ Logo file '{img_path}' not found.")
         return ""
 
-# Now we can safely call it
 logo_base64 = get_base64_image("batik_logo_transparent.png")
 
 # --- Load user database from Excel ---
@@ -43,6 +42,8 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
+if "selected_row" not in st.session_state:
+    st.session_state.selected_row = None
 
 # --- CSS Styling ---
 st.markdown("""
@@ -65,15 +66,6 @@ section[data-testid="stSidebar"] .stRadio label { color: white !important; font-
 .cta-btn { background-color: #F5D104; color: #5C246E; font-size: 18px; padding: 12px 25px; border: none; border-radius: 8px; cursor:pointer; text-decoration: none; font-weight: bold; }
 .cta-btn:hover { background-color: #e1c800; }
 .footer { text-align: center; color: white; font-size: 14px; margin-top: 60px; opacity: 0.8; }
-
-/* minimal styles for clickable HTML table to match your app look */
-.tumas-table { width: 100%; border-collapse: collapse; margin: 16px 0; background: rgba(255,255,255,0.95); border-radius: 8px; overflow: hidden; }
-.tumas-table th, .tumas-table td { padding: 10px 12px; text-align: left; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
-.tumas-table thead { background: #fafafa; }
-.tumas-row-link { display:block; color: inherit; text-decoration: none; width:100%; height:100%; }
-.tumas-row-link:hover { background: rgba(196,36,84,0.03); }
-.tumas-tr:hover { background: rgba(0,0,0,0.02); cursor: pointer; }
-.small-muted { color:#666; font-size:13px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -106,9 +98,8 @@ if not st.session_state.logged_in:
             else:
                 st.error("❌ Username not found")
 
-# --- MAIN APP AFTER LOGIN ---
+# --- MAIN APP ---
 else:
-    # Header
     st.markdown(f"""
         <div style="text-align:center; margin-bottom:20px;">
             <img src="data:image/png;base64,{logo_base64}" width="120">
@@ -120,16 +111,10 @@ else:
 
     # --- Logout ---
     if page == "🔒 Logout":
-        st.warning("⚠️ Are you sure you want to log out?")
-        col1, col2 = st.columns(2)
-        with col1:
-            if st.button("🚪 Yes, Log Out"):
-                st.session_state.logged_in = False
-                st.session_state.username = ""
-                st.stop()
-        with col2:
-            if st.button("❌ Cancel"):
-                st.stop()
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.session_state.selected_row = None
+        st.rerun()
 
     # --- SEARCH PAGE ---
     elif page == "Search":
@@ -150,7 +135,6 @@ else:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
 
-        # --- FILTER FORM ---
         with st.form("search_form"):
             st.markdown("Enter one or more search criteria below:")
             col1, col2, col3 = st.columns(3)
@@ -160,19 +144,10 @@ else:
                 part_no = st.text_input("🧩 Part Number (P/No)")
             with col3:
                 wo_no = st.text_input("📄 Work Order No (W/O No)")
-
             submitted = st.form_submit_button("Search")
 
-        # read selected query param (if user clicked a row before)
-        query_params = st.experimental_get_query_params()
-        selected_param = None
-        if "selected" in query_params:
-            try:
-                selected_param = int(query_params["selected"][0])
-            except Exception:
-                selected_param = None
-
         if submitted:
+            st.session_state.selected_row = None  # reset
             if df.empty:
                 st.error("❌ Tire database is empty or not loaded.")
             else:
@@ -183,121 +158,62 @@ else:
                     mask &= df['P/No'].astype(str).str.contains(part_no.strip(), case=False, na=False)
                 if wo_no:
                     mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
-
-                result = df[mask].reset_index(drop=True)
+                result = df[mask]
 
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} matching record(s).")
 
-                    # store last result in session for detail view after click
-                    st.session_state._last_search_result = result
+                    display_cols = ['Date In', 'Ex-Aircraft', 'Description', 'SN', 'P/No', 'W/O No']
+                    display_df = result[display_cols].copy()
 
-                    # --- Column selector (appears after search) ---
-                    available_cols = list(result.columns)
-                    # default selection as requested: SN, P/No, W/O No, Description, Date In
-                    default_cols = [c for c in ["SN", "P/No", "W/O No", "Description", "Date In"] if c in available_cols]
-                    selected_cols = st.multiselect("Choose columns to display in results table:", options=available_cols, default=default_cols)
-
-                    if not selected_cols:
-                        st.warning("⚠️ No columns selected — showing default columns.")
-                        selected_cols = default_cols
-
-                    # Build HTML clickable table (rows link to ?selected=index) using selected_cols order
-                    table_html = "<table class='tumas-table'>"
-                    table_html += "<thead><tr>"
-                    for col in selected_cols:
-                        table_html += f"<th>{col}</th>"
-                    table_html += "</tr></thead><tbody>"
-
-                    for i, row in result.iterrows():
-                        table_html += "<tr class='tumas-tr'>"
-                        link = f"?selected={i}"
-                        for col in selected_cols:
-                            val = str(row.get(col, ''))
-                            # each cell links to same selected param so clicking anywhere navigates
-                            table_html += f"<td><a class='tumas-row-link' href='{link}'>{val}</a></td>"
-                        table_html += "</tr>"
-
-                    table_html += "</tbody></table>"
-
-                    st.markdown(table_html, unsafe_allow_html=True)
-
+                    for i, row in display_df.iterrows():
+                        cols = st.columns(len(display_cols) + 1)
+                        for j, col_name in enumerate(display_cols):
+                            cols[j].write(str(row[col_name]))
+                        if cols[-1].button("Open", key=f"open_{i}"):
+                            st.session_state.selected_row = int(i)
+                            st.rerun()
                 else:
                     st.error("❌ No matching records found.")
-        else:
-            # if user lands with selected param (clicked previously) but hasn't re-run search in this session,
-            # try to load previous result from session_state to allow showing details below the table
-            if selected_param is not None and "_last_search_result" in st.session_state:
-                result = st.session_state._last_search_result
-            else:
-                result = None
 
-        # --- Show detailed card below the table when a row is selected ---
-        # selection comes from query param ?selected=<index>
-        if selected_param is not None:
-            # attempt to get the matching result set from session (if present)
-            rs = None
-            if "_last_search_result" in st.session_state:
-                rs = st.session_state._last_search_result
-            else:
-                # fallback: try to run a full read of the sheet and pick the global index
-                # (but this is only a fallback; ideally user clicked after a search so session has result)
-                try:
-                    full_df = pd.read_excel(FILE, sheet_name="Sheet1", header=0)
-                    full_df.columns = (
-                        full_df.columns
-                        .astype(str)
-                        .str.strip()
-                        .str.replace('"', '', regex=False)
-                        .str.replace("'", '', regex=False)
-                        .str.replace('\n', ' ', regex=False)
-                    )
-                    rs = None
-                except Exception:
-                    rs = None
+        # --- Detailed view (when user clicks Open) ---
+        if st.session_state.selected_row is not None:
+            selected_data = df.loc[st.session_state.selected_row]
 
-            if rs is not None:
-                if 0 <= selected_param < len(rs):
-                    row = rs.iloc[selected_param]
+            st.markdown("### 🧾 Detailed Tire Information")
+            max_cycles = 300
+            usage = (
+                min((selected_data.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                if pd.notna(selected_data.get('Cycles Since Installed'))
+                else 0
+            )
+            donut_color = "#FF0000" if usage >= 90 else "#F5D104" if usage >= 70 else "#28A745"
 
-                    max_cycles = 300
-                    usage = min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100) if pd.notna(row.get('Cycles Since Installed')) else 0
+            col1, col2 = st.columns([2, 1])
+            with col1:
+                st.markdown(f"""
+                    <div class="result-card">
+                        <h3 style="color:#5C246E;">{selected_data.get('Description','N/A')}</h3>
+                        <p><b style="color:#5C246E;">📆 Date In:</b> {selected_data.get('Date In','N/A')}</p>
+                        <p><b style="color:#5C246E;">📆 Date Out:</b> {selected_data.get('DATE OUT','N/A')}</p>
+                        <p><b style="color:#5C246E;">📋 W/O No:</b> {selected_data.get('W/O No','N/A')}</p>
+                        <p><b style="color:#5C246E;">🧩 Part No:</b> {selected_data.get('P/No','N/A')}</p>
+                        <p><b style="color:#5C246E;">🔧 Serial No:</b> {selected_data.get('SN','N/A')}</p>
+                        <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {selected_data.get('TC Remark','N/A')}</p>
+                        <p><b style="color:#5C246E;">📅 Removal Date:</b> {selected_data.get('Removal Date','N/A')}</p>
+                        <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> {selected_data.get('Ex-Aircraft','N/A')}</p>
+                        <p><b style="color:#5C246E;">🔢 AJL No:</b> {selected_data.get('AJL No','N/A')}</p>
+                        <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {selected_data.get('Cycles Since Installed','0')}</p>
+                        <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                    </div>
+                """, unsafe_allow_html=True)
 
-                    # --- Traffic-light color logic ---
-                    if usage >= 90:
-                        donut_color = "#FF0000"  # red
-                    elif usage >= 70:
-                        donut_color = "#F5D104"  # yellow
-                    else:
-                        donut_color = "#28A745"  # green
+            with col2:
+                chart_id = "chart_selected"
+                js_usage = json.dumps(usage)
+                js_color = json.dumps(donut_color)
 
-                    st.markdown(f"<div style='height:12px'></div>", unsafe_allow_html=True)
-                    col1, col2 = st.columns([2,1])
-                    with col1:
-                        st.markdown(f"""
-                            <div class="result-card">
-                                <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
-                                <p><b style="color:#5C246E;">📆 Date In:</b> <span style="color:#000000;">{row.get('Date In','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📆 Date Out:</b> <span style="color:#000000;">{row.get('DATE OUT','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📆 RO Repair Order No:</b> <span style="color:#000000;">{row.get('RO Repair Order No','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📆 W/O No:</b> <span style="color:#000000;">{row.get('W/O No','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📆 Part No:</b> <span style="color:#000000;">{row.get('P/No','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">🔧 Serial No:</b> <span style="color:#000000;">{row.get('SN','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📆 TC Remark:</b> <span style="color:#000000;">{row.get('TC Remark','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📆 Removal Date:</b> <span style="color:#000000;">{row.get('Removal Date','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">📌 Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Ex-Aircraft','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">🔧 AJL No:</b> <span style="color:#000000;">{row.get('AJL No','N/A')}</span></p>
-                                <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> <span style="color:#000000;">{row.get('Cycles Since Installed','0')}</span></p>
-                                <p><b style="color:#5C246E;">📊 Usage:</b> <span style="color:#000000;">{usage:.1f}% of {max_cycles} cycles</span></p>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    with col2:
-                        # --- Animated donut via embedded Plotly.js ---
-                        chart_id = f"chart_{id(row)}"
-                        js_usage = json.dumps(usage)
-                        js_color = json.dumps(donut_color)
-
-                        html = f"""
+                html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -305,73 +221,28 @@ else:
   var usage = {js_usage};
   var donutColor = {js_color};
   var chartDiv = document.getElementById('{chart_id}');
-
   var data = [
-    {{
-      values: [1],
-      type: 'pie',
-      marker: {{ colors: ['black'] }},
-      textinfo: 'none',
-      hoverinfo: 'skip',
-      showlegend: false,
-      sort: false
-    }},
-    {{
-      values: [0, 100],
-      type: 'pie',
-      hole: 0.7,
-      marker: {{ colors: [donutColor, '#FFFFFF'] }},
-      textinfo: 'none',
-      hoverinfo: 'skip',
-      showlegend: false,
-      sort: false
-    }}
+    {{ values: [1], type: 'pie', marker: {{ colors: ['black'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false }},
+    {{ values: [0, 100], type: 'pie', hole: 0.7, marker: {{ colors: [donutColor, '#FFFFFF'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false }}
   ];
-
-  var layout = {{
-    annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}],
-    margin: {{t:0,b:0,l:0,r:0}},
-    height: 250,
-    width: 250,
-    paper_bgcolor: 'rgba(0,0,0,0)',
-    plot_bgcolor: 'rgba(0,0,0,0)'
-  }};
-
+  var layout = {{ annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}], margin: {{t:0,b:0,l:0,r:0}}, height: 250, width: 250, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }};
   Plotly.newPlot(chartDiv, data, layout, {{displayModeBar:false}}).then(function() {{
     var max = Math.round(Math.min(Math.max(usage,0),100));
     var frames = [];
     for (var i = 0; i <= max; i++) {{
-      frames.push({{
-        name: 'f' + i,
-        data: [
-          {{ values: [1] }},
-          {{ values: [i, 100 - i] }}
-        ],
-        layout: {{
-          annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}]
-        }}
-      }});
+      frames.push({{ name: 'f' + i, data: [{{ values: [1] }}, {{ values: [i, 100 - i] }}], layout: {{ annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}] }} }});
     }}
-
     var totalDuration = 800;
     var frameDuration = Math.max(8, Math.floor(totalDuration / Math.max(1, frames.length)));
-
-    Plotly.animate(chartDiv, frames, {{
-      transition: {{ duration: frameDuration, easing: 'cubic-in-out' }},
-      frame: {{ duration: frameDuration, redraw: true }},
-      mode: 'immediate'
-    }});
+    Plotly.animate(chartDiv, frames, {{ transition: {{ duration: frameDuration, easing: 'cubic-in-out' }}, frame: {{ duration: frameDuration, redraw: true }}, mode: 'immediate' }});
   }});
 }})();
 </script>
 """
-                        components.html(html, height=320)
-                else:
-                    st.error("⚠️ Selected record index is out of range.")
-            else:
-                st.error("⚠️ No saved search results available to display details. Please perform a search and then click a row to view details.")
+                components.html(html, height=320)
 
-    # --- ABOUT PAGE ---
+            st.button("⬅️ Back to Results", on_click=lambda: st.session_state.update({"selected_row": None}))
+
     elif page == "About":
         st.markdown(f"""
             <div class="about-card">
