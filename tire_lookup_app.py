@@ -11,7 +11,7 @@ hide_st_style = """
               <style>
               #MainMenu {visiblity: hidden;}
               footer {visiblity: hidden;}
-             header {visiblity: hidden;}
+              header {visiblity: hidden;}
              </style>
              """
 
@@ -91,7 +91,7 @@ if not st.session_state.logged_in:
                     st.session_state.logged_in = True
                     st.session_state.username = username_input
                     st.success("✅ Login successful!")
-                    st.rerun()   # <-- rerun instead of stop
+                    st.rerun()
                 else:
                     st.error("❌ Incorrect password")
             else:
@@ -99,7 +99,7 @@ if not st.session_state.logged_in:
 
 # --- MAIN APP AFTER LOGIN ---
 else:
-    # Header (instead of sidebar)
+    # Header
     st.markdown(f"""
         <div style="text-align:center; margin-bottom:20px;">
             <img src="data:image/png;base64,{logo_base64}" width="120">
@@ -109,7 +109,7 @@ else:
 
     page = st.radio("", ["Search", "About", "🔒 Logout"], horizontal=True)
 
-    # Logout
+    # --- Logout ---
     if page == "🔒 Logout":
         st.warning("⚠️ Are you sure you want to log out?")
         col1, col2 = st.columns(2)
@@ -122,24 +122,12 @@ else:
             if st.button("❌ Cancel"):
                 st.stop()
 
-    # HOME PAGE (still here in case needed later)
-    elif page == "Home":
-        st.markdown(f"""
-            <div class="homepage-card">
-                <img src="data:image/png;base64,{logo_base64}" width="180">
-                <h1 class="homepage-title">Tire Usage Monitoring System (TUMS)</h1>
-                <p class="homepage-subtitle">Batik Air • Technical Services • Support Workshop</p>
-                <a href="?page=Search" class="cta-btn">🔍 Search Tire Data</a>
-            </div>
-        """, unsafe_allow_html=True)
-
-    # SEARCH PAGE
+    # --- SEARCH PAGE ---
     elif page == "Search":
-        st.subheader("🔍 Search Tire by Serial Number (SN)")
+        st.subheader("🔍 Search Tire Record")
         FILE = "TUMAS-DATABASE.xlsx"
 
         try:
-            # ✅ Use correct header row and clean names
             df = pd.read_excel(FILE, sheet_name="Sheet1", header=0)
             df.columns = (
                 df.columns
@@ -149,51 +137,76 @@ else:
                 .str.replace("'", '', regex=False)
                 .str.replace('\n', ' ', regex=False)
             )
-
         except Exception as e:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
 
-        serial = st.text_input("Enter Tire Serial Number:")
+        # --- FILTER FORM ---
+        with st.form("search_form"):
+            st.markdown("Enter one or more search criteria below:")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                serial = st.text_input("🔧 Serial Number (SN)")
+            with col2:
+                part_no = st.text_input("🧩 Part Number (P/No)")
+            with col3:
+                wo_no = st.text_input("📄 Work Order No (W/O No)")
 
-        if serial:
-            if not df.empty:
-                result = df[df['SN'].astype(str).str.contains(serial.strip(), case=False, na=False)]
+            submitted = st.form_submit_button("Search")
+
+        if submitted:
+            if df.empty:
+                st.error("❌ Tire database is empty or not loaded.")
+            else:
+                mask = pd.Series([True] * len(df))
+                if serial:
+                    mask &= df['SN'].astype(str).str.contains(serial.strip(), case=False, na=False)
+                if part_no:
+                    mask &= df['P/No'].astype(str).str.contains(part_no.strip(), case=False, na=False)
+                if wo_no:
+                    mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
+
+                result = df[mask]
+
                 if not result.empty:
-                    st.success(f"✅ Found {len(result)} record(s) for Serial: {serial.upper()}")
+                    st.success(f"✅ Found {len(result)} matching record(s).")
+
                     for _, row in result.iterrows():
                         max_cycles = 300
-                        usage = min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100) if pd.notna(row.get('Cycles Since Installed')) else 0
+                        usage = (
+                            min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                            if pd.notna(row.get('Cycles Since Installed'))
+                            else 0
+                        )
 
-                        # --- Traffic-light color logic ---
+                        # --- Color logic ---
                         if usage >= 90:
-                            donut_color = "#FF0000"  # red
+                            donut_color = "#FF0000"
                         elif usage >= 70:
-                            donut_color = "#F5D104"  # yellow
+                            donut_color = "#F5D104"
                         else:
-                            donut_color = "#28A745"  # green
+                            donut_color = "#28A745"
 
                         col1, col2 = st.columns([2, 1])
                         with col1:
                             st.markdown(f"""
                                 <div class="result-card">
                                     <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
-                                    <p><b style="color:#5C246E;">📆 Date In:</b> <span style="color:#000000;">{row.get(' Date In','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Date Out:</b> <span style="color:#000000;">{row.get('DATE OUT','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">🛠️ Repair Order No:</b> <span style="color:#000000;">{row.get('Repair Order No','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">⚙️ W/O No:</b> <span style="color:#000000;">{row.get('W/O No','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">🧩 Part No:</b> <span style="color:#000000;">{row.get('P/No','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;"> 𝄃𝄃𝄂𝄂𝄀𝄁𝄃𝄂𝄂𝄃 Serial No:</b> <span style="color:#000000;">{row.get('SN','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📌 TC Remark:</b> <span style="color:#000000;">{row.get('Remark','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">📆 Removal Date:</b> <span style="color:#000000;">{row.get('Removal Date','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> <span style="color:#000000;">{row.get('Ex-Aircraft','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;"> ᯓ  ✈︎ AJL No:</b> <span style="color:#000000;">{row.get('AJL No','N/A')}</span></p>
-                                    <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> <span style="color:#000000;">{row.get('Cycles Since Installed','0')}</span></p>
-                                    <p><b style="color:#5C246E;">📊 Usage:</b> <span style="color:#000000;">{usage:.1f}% of {max_cycles} cycles</span></p>
+                                    <p><b style="color:#5C246E;">📆 Date In:</b> {row.get('Date In','N/A')}</p>
+                                    <p><b style="color:#5C246E;">📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
+                                    <p><b style="color:#5C246E;">📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
+                                    <p><b style="color:#5C246E;">🧩 Part No:</b> {row.get('P/No','N/A')}</p>
+                                    <p><b style="color:#5C246E;">🔧 Serial No:</b> {row.get('SN','N/A')}</p>
+                                    <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
+                                    <p><b style="color:#5C246E;">📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
+                                    <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
+                                    <p><b style="color:#5C246E;">🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
+                                    <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
+                                    <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
                                 </div>
                             """, unsafe_allow_html=True)
+
                         with col2:
-                            # --- Animated donut via embedded Plotly.js ---
                             chart_id = f"chart_{id(row)}"
                             js_usage = json.dumps(usage)
                             js_color = json.dumps(donut_color)
@@ -268,13 +281,11 @@ else:
 """
                             components.html(html, height=320)
                 else:
-                    st.error("❌ No tire found with that Serial Number.")
-            else:
-                st.error("❌ Tire database is empty.")
+                    st.error("❌ No matching records found.")
         else:
-            st.info("ℹ️ Please enter a Serial Number above to search for tire details.")
+            st.info("ℹ️ Enter one or more search fields above to find tire details.")
 
-    # ABOUT PAGE
+    # --- ABOUT PAGE ---
     elif page == "About":
         st.markdown(f"""
             <div class="about-card">
@@ -300,6 +311,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
-
-
