@@ -251,4 +251,4 @@ st.markdown("""
     © 2025 Batik Air • Technical Services • Support Workshop <br>
     Developed for Internship Project (TUMS)
 </div>
-""
+""", unsafe_allow_html=True)
