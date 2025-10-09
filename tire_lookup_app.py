@@ -26,7 +26,7 @@ def get_base64_image(img_path):
 
 logo_base64 = get_base64_image("batik_logo_transparent.png")
 
-# --- Load user database from Excel ---
+# --- Load user database ---
 USERS_FILE = "users.xlsx"
 try:
     users_df = pd.read_excel(USERS_FILE)
@@ -42,8 +42,10 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 if "username" not in st.session_state:
     st.session_state.username = ""
-if "selected_row" not in st.session_state:
-    st.session_state.selected_row = None
+if "selected_record" not in st.session_state:
+    st.session_state.selected_record = None
+if "search_results" not in st.session_state:
+    st.session_state.search_results = pd.DataFrame()
 
 # --- CSS Styling ---
 st.markdown("""
@@ -98,7 +100,7 @@ if not st.session_state.logged_in:
             else:
                 st.error("❌ Username not found")
 
-# --- MAIN APP ---
+# --- MAIN APP AFTER LOGIN ---
 else:
     st.markdown(f"""
         <div style="text-align:center; margin-bottom:20px;">
@@ -111,10 +113,16 @@ else:
 
     # --- Logout ---
     if page == "🔒 Logout":
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.session_state.selected_row = None
-        st.rerun()
+        st.warning("⚠️ Are you sure you want to log out?")
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("🚪 Yes, Log Out"):
+                st.session_state.logged_in = False
+                st.session_state.username = ""
+                st.stop()
+        with col2:
+            if st.button("❌ Cancel"):
+                st.stop()
 
     # --- SEARCH PAGE ---
     elif page == "Search":
@@ -124,8 +132,7 @@ else:
         try:
             df = pd.read_excel(FILE, sheet_name="Sheet1", header=0)
             df.columns = (
-                df.columns
-                .astype(str)
+                df.columns.astype(str)
                 .str.strip()
                 .str.replace('"', '', regex=False)
                 .str.replace("'", '', regex=False)
@@ -135,85 +142,87 @@ else:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
 
-        with st.form("search_form"):
-            st.markdown("Enter one or more search criteria below:")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                serial = st.text_input("🔧 Serial Number (SN)")
-            with col2:
-                part_no = st.text_input("🧩 Part Number (P/No)")
-            with col3:
-                wo_no = st.text_input("📄 Work Order No (W/O No)")
-            submitted = st.form_submit_button("Search")
+        if st.session_state.selected_record is None:
+            with st.form("search_form"):
+                st.markdown("Enter one or more search criteria below:")
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    serial = st.text_input("🔧 Serial Number (SN)")
+                with col2:
+                    part_no = st.text_input("🧩 Part Number (P/No)")
+                with col3:
+                    wo_no = st.text_input("📄 Work Order No (W/O No)")
+                submitted = st.form_submit_button("Search")
 
-        if submitted:
-            st.session_state.selected_row = None  # reset
-            if df.empty:
-                st.error("❌ Tire database is empty or not loaded.")
-            else:
-                mask = pd.Series([True] * len(df))
-                if serial:
-                    mask &= df['SN'].astype(str).str.contains(serial.strip(), case=False, na=False)
-                if part_no:
-                    mask &= df['P/No'].astype(str).str.contains(part_no.strip(), case=False, na=False)
-                if wo_no:
-                    mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
-                result = df[mask]
-
-                if not result.empty:
-                    st.success(f"✅ Found {len(result)} matching record(s).")
-
-                    display_cols = ['Date In', 'Ex-Aircraft', 'Description', 'SN', 'P/No', 'W/O No']
-                    display_df = result[display_cols].copy()
-
-                    for i, row in display_df.iterrows():
-                        cols = st.columns(len(display_cols) + 1)
-                        for j, col_name in enumerate(display_cols):
-                            cols[j].write(str(row[col_name]))
-                        if cols[-1].button("Open", key=f"open_{i}"):
-                            st.session_state.selected_row = int(i)
-                            st.rerun()
+            if submitted:
+                if df.empty:
+                    st.error("❌ Tire database is empty or not loaded.")
                 else:
-                    st.error("❌ No matching records found.")
+                    mask = pd.Series([True] * len(df))
+                    if serial:
+                        mask &= df['SN'].astype(str).str.contains(serial.strip(), case=False, na=False)
+                    if part_no:
+                        mask &= df['P/No'].astype(str).str.contains(part_no.strip(), case=False, na=False)
+                    if wo_no:
+                        mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
 
-        # --- Detailed view (when user clicks Open) ---
-        if st.session_state.selected_row is not None:
-            selected_data = df.loc[st.session_state.selected_row]
+                    result = df[mask]
+                    st.session_state.search_results = result
 
-            st.markdown("### 🧾 Detailed Tire Information")
+            if not st.session_state.search_results.empty:
+                result = st.session_state.search_results
+                st.success(f"✅ Found {len(result)} matching record(s).")
+
+                show_df = result[['Date In', 'Ex-Aircraft', 'Description', 'SN', 'P/No', 'W/O No']].copy()
+                show_df.reset_index(drop=True, inplace=True)
+
+                for i, row in show_df.iterrows():
+                    cols = st.columns([2, 2, 3, 2, 2, 2, 1])
+                    cols[0].write(row['Date In'])
+                    cols[1].write(row['Ex-Aircraft'])
+                    cols[2].write(row['Description'])
+                    cols[3].write(row['SN'])
+                    cols[4].write(row['P/No'])
+                    cols[5].write(row['W/O No'])
+                    if cols[6].button("Open", key=f"open_{i}"):
+                        st.session_state.selected_record = result.iloc[i]
+                        st.rerun()
+            else:
+                st.info("ℹ️ Enter one or more search fields above to find tire details.")
+
+        else:
+            # --- Show selected record details ---
+            row = st.session_state.selected_record
             max_cycles = 300
             usage = (
-                min((selected_data.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                if pd.notna(selected_data.get('Cycles Since Installed'))
+                min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                if pd.notna(row.get('Cycles Since Installed'))
                 else 0
             )
             donut_color = "#FF0000" if usage >= 90 else "#F5D104" if usage >= 70 else "#28A745"
 
-            col1, col2 = st.columns([2, 1])
-            with col1:
-                st.markdown(f"""
-                    <div class="result-card">
-                        <h3 style="color:#5C246E;">{selected_data.get('Description','N/A')}</h3>
-                        <p><b style="color:#5C246E;">📆 Date In:</b> {selected_data.get('Date In','N/A')}</p>
-                        <p><b style="color:#5C246E;">📆 Date Out:</b> {selected_data.get('DATE OUT','N/A')}</p>
-                        <p><b style="color:#5C246E;">📋 W/O No:</b> {selected_data.get('W/O No','N/A')}</p>
-                        <p><b style="color:#5C246E;">🧩 Part No:</b> {selected_data.get('P/No','N/A')}</p>
-                        <p><b style="color:#5C246E;">🔧 Serial No:</b> {selected_data.get('SN','N/A')}</p>
-                        <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {selected_data.get('TC Remark','N/A')}</p>
-                        <p><b style="color:#5C246E;">📅 Removal Date:</b> {selected_data.get('Removal Date','N/A')}</p>
-                        <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> {selected_data.get('Ex-Aircraft','N/A')}</p>
-                        <p><b style="color:#5C246E;">🔢 AJL No:</b> {selected_data.get('AJL No','N/A')}</p>
-                        <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {selected_data.get('Cycles Since Installed','0')}</p>
-                        <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
-                    </div>
-                """, unsafe_allow_html=True)
+            st.markdown(f"""
+                <div class="result-card">
+                    <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
+                    <p><b style="color:#5C246E;">📆 Date In:</b> {row.get('Date In','N/A')}</p>
+                    <p><b style="color:#5C246E;">📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
+                    <p><b style="color:#5C246E;">📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
+                    <p><b style="color:#5C246E;">🧩 Part No:</b> {row.get('P/No','N/A')}</p>
+                    <p><b style="color:#5C246E;">🔧 Serial No:</b> {row.get('SN','N/A')}</p>
+                    <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
+                    <p><b style="color:#5C246E;">📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
+                    <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
+                    <p><b style="color:#5C246E;">🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
+                    <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
+                    <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                </div>
+            """, unsafe_allow_html=True)
 
-            with col2:
-                chart_id = "chart_selected"
-                js_usage = json.dumps(usage)
-                js_color = json.dumps(donut_color)
-
-                html = f"""
+            # Donut chart
+            chart_id = f"chart_{id(row)}"
+            js_usage = json.dumps(usage)
+            js_color = json.dumps(donut_color)
+            html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -222,26 +231,26 @@ else:
   var donutColor = {js_color};
   var chartDiv = document.getElementById('{chart_id}');
   var data = [
-    {{ values: [1], type: 'pie', marker: {{ colors: ['black'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false }},
-    {{ values: [0, 100], type: 'pie', hole: 0.7, marker: {{ colors: [donutColor, '#FFFFFF'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false }}
+    {{ values: [1], type: 'pie', marker: {{ colors: ['black'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false, sort: false }},
+    {{ values: [0, 100], type: 'pie', hole: 0.7, marker: {{ colors: [donutColor, '#FFFFFF'] }}, textinfo: 'none', hoverinfo: 'skip', showlegend: false, sort: false }}
   ];
   var layout = {{ annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}], margin: {{t:0,b:0,l:0,r:0}}, height: 250, width: 250, paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }};
   Plotly.newPlot(chartDiv, data, layout, {{displayModeBar:false}}).then(function() {{
     var max = Math.round(Math.min(Math.max(usage,0),100));
     var frames = [];
     for (var i = 0; i <= max; i++) {{
-      frames.push({{ name: 'f' + i, data: [{{ values: [1] }}, {{ values: [i, 100 - i] }}], layout: {{ annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}] }} }});
+      frames.push({{ name: 'f'+i, data: [{{ values:[1]}}, {{ values:[i,100-i]} }], layout: {{ annotations:[{{ text:i+'%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}] }} }});
     }}
-    var totalDuration = 800;
-    var frameDuration = Math.max(8, Math.floor(totalDuration / Math.max(1, frames.length)));
-    Plotly.animate(chartDiv, frames, {{ transition: {{ duration: frameDuration, easing: 'cubic-in-out' }}, frame: {{ duration: frameDuration, redraw: true }}, mode: 'immediate' }});
+    Plotly.animate(chartDiv, frames, {{ transition: {{duration:10}}, frame: {{duration:10, redraw:true}}, mode:'immediate' }});
   }});
 }})();
 </script>
 """
-                components.html(html, height=320)
+            components.html(html, height=320)
 
-            st.button("⬅️ Back to Results", on_click=lambda: st.session_state.update({"selected_row": None}))
+            if st.button("⬅ Back to Table"):
+                st.session_state.selected_record = None
+                st.rerun()
 
     elif page == "About":
         st.markdown(f"""
@@ -250,18 +259,14 @@ else:
                 <h2 style="text-align:center; font-family: Arial, sans-serif; color:#5C246E;">About TUMS</h2>
                 <p style="font-size:16px; color:#444444; text-align:justify;">
                     The <b>Tire Usage Monitoring System (TUMS)</b> is a digital solution developed for 
-                    <b>Batik Air Technical Services • Support Workshop</b>. Its main purpose is to 
-                    maximize the usage of aircraft tires by tracking cycles, retreads, and replacement 
-                    history in a structured way.
+                    <b>Batik Air Technical Services • Support Workshop</b>.
                 </p>
                 <p style="font-size:16px; color:#444444; text-align:justify;">
-                    This system was built as part of an <b>Internship Project (2025)</b> with the goal 
-                    of modernizing tire management and reducing unnecessary replacements.
+                    It tracks tire cycles, retreads, and replacement history to optimize usage and minimize waste.
                 </p>
             </div>
         """, unsafe_allow_html=True)
 
-# --- FOOTER ---
 st.markdown("""
 <div class="footer">
     © 2025 Batik Air • Technical Services • Support Workshop <br>
