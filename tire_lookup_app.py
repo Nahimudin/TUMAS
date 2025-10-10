@@ -1,4 +1,3 @@
-
 import streamlit as st
 import pandas as pd
 import base64
@@ -171,98 +170,88 @@ else:
 
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} matching record(s).")
-                    
-                    # Create table data
-                    table_data = []
+
+                    # --- Summary Table ---
+                    summary_data = []
                     for idx, row in result.iterrows():
-                        # Format dates properly
-                        date_in = str(row.get('Date In', 'N/A'))
-                        if 'T' in date_in:
-                            date_in = date_in.split('T')[0]
-                        elif ' ' in date_in:
-                            date_in = date_in.split(' ')[0]
-                        
-                        date_out = str(row.get('DATE OUT', 'N/A'))
-                        if 'T' in date_out:
-                            date_out = date_out.split('T')[0]
-                        elif ' ' in date_out:
-                            date_out = date_out.split(' ')[0]
-                        
-                        table_data.append({
-                            'Seq. No': row.get('Seq. No', idx + 1),
-                            'Date In': date_in,
-                            'DATE OUT': date_out,
-                            'W/O No': row.get('W/O No', 'N/A'),
+                        summary_data.append({
+                            'Date In': row.get('Date In', 'N/A'),
+                            'Date Out': row.get('DATE OUT', 'N/A'),
+                            'Ex-Aircraft': row.get('Ex-Aircraft', 'N/A'),
                             'Description': row.get('Description', 'N/A'),
+                            'W/O No': row.get('W/O No', 'N/A'),
                             'P/No': row.get('P/No', 'N/A'),
-                            'SN': row.get('SN', 'N/A'),
-                            'Ex-Aircraft': row.get('Ex-Aircraft', 'N/A')
+                            'SN': row.get('SN', 'N/A')
                         })
                     
-                    # Display the table using Streamlit's native dataframe
-                    table_df = pd.DataFrame(table_data)
-                    st.dataframe(table_df, use_container_width=True, hide_index=True)
+                    summary_df = pd.DataFrame(summary_data)
                     
-                    # Add "open" buttons for each row below the table
-                    st.markdown("**Click to view details:**")
+                    # Display table with white background and black text
+                    st.markdown("""
+                        <style>
+                        .dataframe-container {
+                            background-color: white;
+                            padding: 20px;
+                            border-radius: 10px;
+                            margin: 20px 0;
+                        }
+                        .dataframe {
+                            color: black !important;
+                        }
+                        </style>
+                    """, unsafe_allow_html=True)
                     
-                    # Create buttons in a grid layout
-                    num_buttons_per_row = 5
-                    for i in range(0, len(table_data), num_buttons_per_row):
-                        cols = st.columns(num_buttons_per_row)
-                        for j, col in enumerate(cols):
-                            if i + j < len(table_data):
-                                with col:
-                                    aircraft = table_data[i + j]['Ex-Aircraft']
-                                    if st.button(f"open {aircraft}", key=f"open_{i + j}"):
-                                        # Get the original row data
-                                        original_row = result.iloc[i + j]
-                                        
-                                        # Calculate usage
-                                        max_cycles = 300
-                                        usage = (
-                                            min((original_row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                                            if pd.notna(original_row.get('Cycles Since Installed'))
-                                            else 0
-                                        )
-                                        
-                                        # Color logic
-                                        if usage >= 90:
-                                            donut_color = "#FF0000"
-                                        elif usage >= 70:
-                                            donut_color = "#F5D104"
-                                        else:
-                                            donut_color = "#28A745"
-                                        
-                                        # Display full details
-                                        st.markdown("---")
-                                        st.markdown("### 📊 Detailed Information")
-                                        
-                                        col1, col2 = st.columns([2, 1])
-                                        with col1:
-                                            st.markdown(f"""
-                                                <div class="result-card">
-                                                    <h3 style="color:#5C246E;">{original_row.get('Description','N/A')}</h3>
-                                                    <p><b style="color:#5C246E;">Date In:</b> {original_row.get('Date In','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">Date Out:</b> {original_row.get('DATE OUT','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">W/O No:</b> {original_row.get('W/O No','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">Part No:</b> {original_row.get('P/No','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">Serial No:</b> {original_row.get('SN','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">TC Remark:</b> {original_row.get('TC Remark','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">Removal Date:</b> {original_row.get('Removal Date','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">Ex-Aircraft:</b> {original_row.get('Ex-Aircraft','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">AJL No:</b> {original_row.get('AJL No','N/A')}</p>
-                                                    <p><b style="color:#5C246E;">Cycles Since Installed:</b> {original_row.get('Cycles Since Installed','0')}</p>
-                                                    <p><b style="color:#5C246E;">Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
-                                                </div>
-                                            """, unsafe_allow_html=True)
-                                        
-                                        with col2:
-                                            chart_id = f"chart_{i + j}_{id(original_row)}"
-                                            js_usage = json.dumps(usage)
-                                            js_color = json.dumps(donut_color)
-                                            
-                                            html = f"""
+                    st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+                    st.dataframe(summary_df, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
+
+                    st.markdown("---")
+                    st.subheader("📄 Detailed Records")
+                    st.markdown("*Click 'Open' to view full details for each record*")
+
+                    # --- Expandable Details ---
+                    for idx, row in result.iterrows():
+                        max_cycles = 300
+                        usage = (
+                            min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                            if pd.notna(row.get('Cycles Since Installed'))
+                            else 0
+                        )
+
+                        # --- Color logic ---
+                        if usage >= 90:
+                            donut_color = "#FF0000"
+                        elif usage >= 70:
+                            donut_color = "#F5D104"
+                        else:
+                            donut_color = "#28A745"
+
+                        with st.expander(f"🔍 Open - SN: {row.get('SN','N/A')} | P/No: {row.get('P/No','N/A')} | W/O: {row.get('W/O No','N/A')}"):
+                            col1, col2 = st.columns([2, 1])
+                            with col1:
+                                st.markdown(f"""
+                                    <div class="result-card">
+                                        <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
+                                        <p><b style="color:#5C246E;">📆 Date In:</b> {row.get('Date In','N/A')}</p>
+                                        <p><b style="color:#5C246E;">📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
+                                        <p><b style="color:#5C246E;">📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
+                                        <p><b style="color:#5C246E;">🧩 Part No:</b> {row.get('P/No','N/A')}</p>
+                                        <p><b style="color:#5C246E;">🔧 Serial No:</b> {row.get('SN','N/A')}</p>
+                                        <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
+                                        <p><b style="color:#5C246E;">📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
+                                        <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
+                                        <p><b style="color:#5C246E;">🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
+                                        <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
+                                        <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                                    </div>
+                                """, unsafe_allow_html=True)
+
+                            with col2:
+                                chart_id = f"chart_{idx}"
+                                js_usage = json.dumps(usage)
+                                js_color = json.dumps(donut_color)
+
+                                html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -330,8 +319,7 @@ else:
 }})();
 </script>
 """
-                                            components.html(html, height=320)
-                    
+                                components.html(html, height=320)
                 else:
                     st.error("❌ No matching records found.")
         else:
@@ -363,4 +351,3 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-
