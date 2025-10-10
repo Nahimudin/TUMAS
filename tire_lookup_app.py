@@ -65,12 +65,6 @@ section[data-testid="stSidebar"] .stRadio label { color: white !important; font-
 .cta-btn { background-color: #F5D104; color: #5C246E; font-size: 18px; padding: 12px 25px; border: none; border-radius: 8px; cursor:pointer; text-decoration: none; font-weight: bold; }
 .cta-btn:hover { background-color: #e1c800; }
 .footer { text-align: center; color: white; font-size: 14px; margin-top: 60px; opacity: 0.8; }
-.result-table { background-color: white; border-radius: 10px; padding: 20px; margin: 20px 0; box-shadow: 0px 4px 12px rgba(0,0,0,0.1); }
-.table-header { background-color: #5C246E; color: white; padding: 12px; border-radius: 8px; margin-bottom: 10px; }
-.table-row { background-color: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; margin: 8px 0; padding: 12px; cursor: pointer; transition: all 0.3s ease; }
-.table-row:hover { background-color: #e9ecef; transform: translateY(-2px); box-shadow: 0px 4px 8px rgba(0,0,0,0.1); }
-.table-row.expanded { background-color: #fff3cd; border-color: #ffc107; }
-.expanded-content { background-color: white; border: 1px solid #dee2e6; border-top: none; border-radius: 0 0 8px 8px; padding: 20px; margin-top: -8px; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -177,176 +171,146 @@ else:
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} matching record(s).")
                     
-                    # Initialize expanded state for each row
-                    if "expanded_rows" not in st.session_state:
-                        st.session_state.expanded_rows = {}
-                    
-                    # Create table view
-                    st.markdown("""
-                        <div class="result-table">
-                            <div class="table-header">
-                                <h4 style="margin:0; color:white;">📋 Search Results - Click any row to view details</h4>
-                            </div>
-                    """, unsafe_allow_html=True)
-                    
+                    # Create a simple table with the required columns
+                    table_data = []
                     for idx, row in result.iterrows():
-                        # Create unique key for each row
-                        row_key = f"row_{idx}_{row.get('SN', '')}_{row.get('P/No', '')}"
-                        
-                        # Check if this row is expanded
-                        is_expanded = st.session_state.expanded_rows.get(row_key, False)
-                        
-                        # Create row HTML
-                        row_html = f"""
-                        <div class="table-row {'expanded' if is_expanded else ''}" onclick="toggleRow('{row_key}')">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <div style="flex: 1;">
-                                    <strong>📅 Date In:</strong> {row.get('Date In','N/A')} | 
-                                    <strong>📅 Date Out:</strong> {row.get('DATE OUT','N/A')} | 
-                                    <strong>✈️ Ex-Aircraft:</strong> {row.get('Ex-Aircraft','N/A')}
-                                </div>
-                                <div style="flex: 1; text-align: center;">
-                                    <strong>📋 Description:</strong> {row.get('Description','N/A')}
-                                </div>
-                                <div style="flex: 1; text-align: right;">
-                                    <strong>📄 W/O No:</strong> {row.get('W/O No','N/A')} | 
-                                    <strong>🧩 P/No:</strong> {row.get('P/No','N/A')} | 
-                                    <strong>🔧 SN:</strong> {row.get('SN','N/A')}
-                                </div>
-                            </div>
-                        </div>
-                        """
-                        
-                        if is_expanded:
-                            # Calculate usage for expanded content
-                            max_cycles = 300
-                            usage = (
-                                min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                                if pd.notna(row.get('Cycles Since Installed'))
-                                else 0
-                            )
-                            
-                            # Color logic
-                            if usage >= 90:
-                                donut_color = "#FF0000"
-                            elif usage >= 70:
-                                donut_color = "#F5D104"
-                            else:
-                                donut_color = "#28A745"
-                            
-                            # Expanded content with chart
-                            expanded_html = f"""
-                            <div class="expanded-content" id="content_{row_key}">
-                                <div style="display: flex; gap: 20px;">
-                                    <div style="flex: 2;">
-                                        <h4 style="color:#5C246E; margin-top:0;">📊 Detailed Information</h4>
-                                        <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
-                                        <p><b style="color:#5C246E;">📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
-                                        <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
-                                    </div>
-                                    <div style="flex: 1; text-align: center;">
-                                        <div id="chart_{row_key}" style="width:100%;height:250px;"></div>
-                                    </div>
-                                </div>
-                            </div>
-                            """
-                            
-                            # Add chart JavaScript
-                            chart_js = f"""
-                            <script>
-                            (function() {{
-                                var usage = {json.dumps(usage)};
-                                var donutColor = {json.dumps(donut_color)};
-                                var chartDiv = document.getElementById('chart_{row_key}');
+                        table_data.append({
+                            'Date In': row.get('Date In', 'N/A'),
+                            'Date Out': row.get('DATE OUT', 'N/A'),
+                            'Ex Aircraft': row.get('Ex-Aircraft', 'N/A'),
+                            'Description': row.get('Description', 'N/A'),
+                            'W/O No': row.get('W/O No', 'N/A'),
+                            'P/No': row.get('P/No', 'N/A'),
+                            'SN': row.get('SN', 'N/A'),
+                            'Action': f'Open_{idx}'  # Unique identifier for each row
+                        })
+                    
+                    # Display the table
+                    table_df = pd.DataFrame(table_data)
+                    st.dataframe(table_df, use_container_width=True)
+                    
+                    # Add buttons for each row
+                    st.markdown("**Select a record to view details:**")
+                    cols = st.columns(len(table_data))
+                    
+                    for idx, (col, row_data) in enumerate(zip(cols, table_data)):
+                        with col:
+                            if st.button(f"Open", key=f"open_{idx}"):
+                                # Get the original row data
+                                original_row = result.iloc[idx]
                                 
-                                if (chartDiv) {{
-                                    var data = [
-                                        {{
-                                            values: [1],
-                                            type: 'pie',
-                                            marker: {{ colors: ['black'] }},
-                                            textinfo: 'none',
-                                            hoverinfo: 'skip',
-                                            showlegend: false,
-                                            sort: false
-                                        }},
-                                        {{
-                                            values: [0, 100],
-                                            type: 'pie',
-                                            hole: 0.7,
-                                            marker: {{ colors: [donutColor, '#FFFFFF'] }},
-                                            textinfo: 'none',
-                                            hoverinfo: 'skip',
-                                            showlegend: false,
-                                            sort: false
-                                        }}
-                                    ];
+                                # Calculate usage
+                                max_cycles = 300
+                                usage = (
+                                    min((original_row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                                    if pd.notna(original_row.get('Cycles Since Installed'))
+                                    else 0
+                                )
+                                
+                                # Color logic
+                                if usage >= 90:
+                                    donut_color = "#FF0000"
+                                elif usage >= 70:
+                                    donut_color = "#F5D104"
+                                else:
+                                    donut_color = "#28A745"
+                                
+                                # Display full details
+                                col1, col2 = st.columns([2, 1])
+                                with col1:
+                                    st.markdown(f"""
+                                        <div class="result-card">
+                                            <h3 style="color:#5C246E;">{original_row.get('Description','N/A')}</h3>
+                                            <p><b style="color:#5C246E;">Date In:</b> {original_row.get('Date In','N/A')}</p>
+                                            <p><b style="color:#5C246E;">Date Out:</b> {original_row.get('DATE OUT','N/A')}</p>
+                                            <p><b style="color:#5C246E;">W/O No:</b> {original_row.get('W/O No','N/A')}</p>
+                                            <p><b style="color:#5C246E;">Part No:</b> {original_row.get('P/No','N/A')}</p>
+                                            <p><b style="color:#5C246E;">Serial No:</b> {original_row.get('SN','N/A')}</p>
+                                            <p><b style="color:#5C246E;">TC Remark:</b> {original_row.get('TC Remark','N/A')}</p>
+                                            <p><b style="color:#5C246E;">Removal Date:</b> {original_row.get('Removal Date','N/A')}</p>
+                                            <p><b style="color:#5C246E;">Ex-Aircraft:</b> {original_row.get('Ex-Aircraft','N/A')}</p>
+                                            <p><b style="color:#5C246E;">AJL No:</b> {original_row.get('AJL No','N/A')}</p>
+                                            <p><b style="color:#5C246E;">Cycles Since Installed:</b> {original_row.get('Cycles Since Installed','0')}</p>
+                                            <p><b style="color:#5C246E;">Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                                        </div>
+                                    """, unsafe_allow_html=True)
+                                
+                                with col2:
+                                    chart_id = f"chart_{idx}_{id(original_row)}"
+                                    js_usage = json.dumps(usage)
+                                    js_color = json.dumps(donut_color)
                                     
-                                    var layout = {{
-                                        annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:16, color:'white'}}, showarrow:false }}],
-                                        margin: {{t:0,b:0,l:0,r:0}},
-                                        height: 200,
-                                        width: 200,
-                                        paper_bgcolor: 'rgba(0,0,0,0)',
-                                        plot_bgcolor: 'rgba(0,0,0,0)'
-                                    }};
-                                    
-                                    Plotly.newPlot(chartDiv, data, layout, {{displayModeBar:false}}).then(function() {{
-                                        var max = Math.round(Math.min(Math.max(usage,0),100));
-                                        var frames = [];
-                                        for (var i = 0; i <= max; i++) {{
-                                            frames.push({{
-                                                name: 'f' + i,
-                                                data: [
-                                                    {{ values: [1] }},
-                                                    {{ values: [i, 100 - i] }}
-                                                ],
-                                                layout: {{
-                                                    annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:16, color:'white'}}, showarrow:false }}]
-                                                }}
-                                            }});
-                                        }}
-                                        
-                                        var totalDuration = 600;
-                                        var frameDuration = Math.max(6, Math.floor(totalDuration / Math.max(1, frames.length)));
-                                        
-                                        Plotly.animate(chartDiv, frames, {{
-                                            transition: {{ duration: frameDuration, easing: 'cubic-in-out' }},
-                                            frame: {{ duration: frameDuration, redraw: true }},
-                                            mode: 'immediate'
-                                        }});
-                                    }});
-                                }}
-                            }})();
-                            </script>
-                            """
-                            
-                            row_html += expanded_html + chart_js
-                        
-                        st.markdown(row_html, unsafe_allow_html=True)
-                    
-                    # Add JavaScript for row toggling
-                    st.markdown("""
-                    <script>
-                    function toggleRow(rowKey) {
-                        // This will trigger a Streamlit rerun with the row key
-                        // We'll use Streamlit's session state to handle this
-                        window.parent.postMessage({
-                            type: 'streamlit:setComponentValue',
-                            key: 'toggle_row',
-                            value: rowKey
-                        }, '*');
-                    }
-                    </script>
-                    """, unsafe_allow_html=True)
-                    
-                    # Handle row toggling
-                    if st.button("🔄 Refresh View", key="refresh_view"):
-                        st.rerun()
-                    
-                    st.markdown("</div>", unsafe_allow_html=True)
+                                    html = f"""
+<div id="{chart_id}" style="width:100%;height:300px;"></div>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script>
+(function() {{
+  var usage = {js_usage};
+  var donutColor = {js_color};
+  var chartDiv = document.getElementById('{chart_id}');
+
+  var data = [
+    {{
+      values: [1],
+      type: 'pie',
+      marker: {{ colors: ['black'] }},
+      textinfo: 'none',
+      hoverinfo: 'skip',
+      showlegend: false,
+      sort: false
+    }},
+    {{
+      values: [0, 100],
+      type: 'pie',
+      hole: 0.7,
+      marker: {{ colors: [donutColor, '#FFFFFF'] }},
+      textinfo: 'none',
+      hoverinfo: 'skip',
+      showlegend: false,
+      sort: false
+    }}
+  ];
+
+  var layout = {{
+    annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}],
+    margin: {{t:0,b:0,l:0,r:0}},
+    height: 250,
+    width: 250,
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)'
+  }};
+
+  Plotly.newPlot(chartDiv, data, layout, {{displayModeBar:false}}).then(function() {{
+    var max = Math.round(Math.min(Math.max(usage,0),100));
+    var frames = [];
+    for (var i = 0; i <= max; i++) {{
+      frames.push({{
+        name: 'f' + i,
+        data: [
+          {{ values: [1] }},
+          {{ values: [i, 100 - i] }}
+        ],
+        layout: {{
+          annotations: [{{ text: i + '%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}]
+        }}
+      }});
+    }}
+
+    var totalDuration = 800;
+    var frameDuration = Math.max(8, Math.floor(totalDuration / Math.max(1, frames.length)));
+
+    Plotly.animate(chartDiv, frames, {{
+      transition: {{ duration: frameDuration, easing: 'cubic-in-out' }},
+      frame: {{ duration: frameDuration, redraw: true }},
+      mode: 'immediate'
+    }});
+  }});
+}})();
+</script>
+"""
+                                    components.html(html, height=320)
+                                
+                                st.markdown("---")
                     
                 else:
                     st.error("❌ No matching records found.")
