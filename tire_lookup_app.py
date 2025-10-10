@@ -177,44 +177,48 @@ else:
             result = st.session_state.search_results
             st.success(f"✅ Found {len(result)} matching record(s).")
 
-            # --- Summary Table with Open buttons ---
+            # Add container background with white header row
             st.markdown("""
-                <style>
-                .element-container:has(.table-row) {
-                    background-color: black;
-                    padding: 10px;
-                    border-radius: 10px;
-                }
-                .table-row {
-                    background-color: black !important;
-                }
-                </style>
+            <div style="background-color: black; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; background-color: #333; border-radius: 5px; margin-bottom: 10px;">
+                    <div style="color: white; font-weight: bold;">Date In</div>
+                    <div style="color: white; font-weight: bold;">Date Out</div>
+                    <div style="color: white; font-weight: bold;">Ex-Aircraft</div>
+                    <div style="color: white; font-weight: bold;">Description</div>
+                    <div style="color: white; font-weight: bold;">W/O No</div>
+                    <div style="color: white; font-weight: bold;">P/No</div>
+                    <div style="color: white; font-weight: bold;">SN</div>
+                    <div style="color: white; font-weight: bold;">Action</div>
+                </div>
+            </div>
             """, unsafe_allow_html=True)
             
-            # Add container background
-            st.markdown('<div style="background-color: black; padding: 20px; border-radius: 10px;">', unsafe_allow_html=True)
-            
-            # Create table with buttons
-            for idx, row in result.iterrows():
-                cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
+            # Create container for all rows
+            container = st.container()
+            with container:
+                st.markdown('<div style="background-color: black; padding: 10px 20px 20px 20px; border-radius: 10px; margin-top: -20px;">', unsafe_allow_html=True)
                 
-                with cols[0]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('Date In', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[1]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('DATE OUT', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[2]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('Ex-Aircraft', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[3]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('Description', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[4]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('W/O No', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[5]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('P/No', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[6]:
-                    st.markdown(f"<p style='color:white;'><b>{row.get('SN', 'N/A')}</b></p>", unsafe_allow_html=True)
-                with cols[7]:
-                    if st.button("Open", key=f"open_{idx}"):
-                        st.session_state[f"show_{idx}"] = True
+                # Create table with buttons
+                for idx, row in result.iterrows():
+                    cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
+                    
+                    with cols[0]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('Date In', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[1]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('DATE OUT', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[2]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('Ex-Aircraft', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[3]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('Description', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[4]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('W/O No', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[5]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('P/No', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[6]:
+                        st.markdown(f"<p style='color:white;'><b>{row.get('SN', 'N/A')}</b></p>", unsafe_allow_html=True)
+                    with cols[7]:
+                        if st.button("Open", key=f"open_{idx}"):
+                            st.session_state[f"show_{idx}"] = True
                 
                 # Show detailed view if Open is clicked
                 if st.session_state.get(f"show_{idx}", False):
@@ -332,9 +336,9 @@ else:
                         st.session_state[f"show_{idx}"] = False
                         st.rerun()
                 
-                st.markdown("<hr style='border-color: #444; margin: 10px 0;'>", unsafe_allow_html=True)
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+                    st.markdown("<hr style='border-color: #444; margin: 10px 0;'>", unsafe_allow_html=True)
+                
+                st.markdown('</div>', unsafe_allow_html=True)
         
         elif st.session_state.search_results is not None:
             st.error("❌ No matching records found.")
