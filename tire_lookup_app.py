@@ -179,8 +179,8 @@ else:
 
             # Add container background with white header row
             st.markdown("""
-            <div style="background-color: black; padding: 20px; border-radius: 10px; margin: 20px 0;">
-              <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; border-bottom: 2px solid #C42454;">
+                    <div style="background-color: black; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; border-bottom: 2px solid #C42454;">
                     <div style="color: white; font-weight: bold;">Date In</div>
                     <div style="color: white; font-weight: bold;">Date Out</div>
                     <div style="color: white; font-weight: bold;">Ex-Aircraft</div>
@@ -189,9 +189,9 @@ else:
                     <div style="color: white; font-weight: bold;">P/No</div>
                     <div style="color: white; font-weight: bold;">SN</div>
                     <div style="color: white; font-weight: bold;">Action</div>
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
+                    </div>
+                    </div>
+                     """, unsafe_allow_html=True)
             
             # Create container for all rows
             for idx, row in result.iterrows():
@@ -384,6 +384,7 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
 
