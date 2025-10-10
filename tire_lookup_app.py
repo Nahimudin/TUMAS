@@ -175,89 +175,89 @@ else:
         # Display results if they exist
         if st.session_state.search_results is not None and not st.session_state.search_results.empty:
             result = st.session_state.search_results
-                    st.success(f"✅ Found {len(result)} matching record(s).")
+            st.success(f"✅ Found {len(result)} matching record(s).")
 
-                    # --- Summary Table with Open buttons ---
-                    st.markdown("""
-                        <style>
-                        .dataframe-container {
-                            background-color: white;
-                            padding: 20px;
-                            border-radius: 10px;
-                            margin: 20px 0;
-                        }
-                        .dataframe {
-                            color: black !important;
-                        }
-                        </style>
-                    """, unsafe_allow_html=True)
-                    
-                    st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
-                    
-                    # Create table with buttons
-                    for idx, row in result.iterrows():
-                        cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
-                        
-                        with cols[0]:
-                            st.write(f"**{row.get('Date In', 'N/A')}**")
-                        with cols[1]:
-                            st.write(f"**{row.get('DATE OUT', 'N/A')}**")
-                        with cols[2]:
-                            st.write(f"**{row.get('Ex-Aircraft', 'N/A')}**")
-                        with cols[3]:
-                            st.write(f"**{row.get('Description', 'N/A')}**")
-                        with cols[4]:
-                            st.write(f"**{row.get('W/O No', 'N/A')}**")
-                        with cols[5]:
-                            st.write(f"**{row.get('P/No', 'N/A')}**")
-                        with cols[6]:
-                            st.write(f"**{row.get('SN', 'N/A')}**")
-                        with cols[7]:
-                            if st.button("Open", key=f"open_{idx}"):
-                                st.session_state[f"show_{idx}"] = True
-                        
-                        # Show detailed view if Open is clicked
-                        if st.session_state.get(f"show_{idx}", False):
-                            max_cycles = 300
-                            usage = (
-                                min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                                if pd.notna(row.get('Cycles Since Installed'))
-                                else 0
-                            )
+            # --- Summary Table with Open buttons ---
+            st.markdown("""
+                <style>
+                .dataframe-container {
+                    background-color: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                }
+                .dataframe {
+                    color: black !important;
+                }
+                </style>
+            """, unsafe_allow_html=True)
+            
+            st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
+            
+            # Create table with buttons
+            for idx, row in result.iterrows():
+                cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
+                
+                with cols[0]:
+                    st.write(f"**{row.get('Date In', 'N/A')}**")
+                with cols[1]:
+                    st.write(f"**{row.get('DATE OUT', 'N/A')}**")
+                with cols[2]:
+                    st.write(f"**{row.get('Ex-Aircraft', 'N/A')}**")
+                with cols[3]:
+                    st.write(f"**{row.get('Description', 'N/A')}**")
+                with cols[4]:
+                    st.write(f"**{row.get('W/O No', 'N/A')}**")
+                with cols[5]:
+                    st.write(f"**{row.get('P/No', 'N/A')}**")
+                with cols[6]:
+                    st.write(f"**{row.get('SN', 'N/A')}**")
+                with cols[7]:
+                    if st.button("Open", key=f"open_{idx}"):
+                        st.session_state[f"show_{idx}"] = True
+                
+                # Show detailed view if Open is clicked
+                if st.session_state.get(f"show_{idx}", False):
+                    max_cycles = 300
+                    usage = (
+                        min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                        if pd.notna(row.get('Cycles Since Installed'))
+                        else 0
+                    )
 
-                            # --- Color logic ---
-                            if usage >= 90:
-                                donut_color = "#FF0000"
-                            elif usage >= 70:
-                                donut_color = "#F5D104"
-                            else:
-                                donut_color = "#28A745"
+                    # --- Color logic ---
+                    if usage >= 90:
+                        donut_color = "#FF0000"
+                    elif usage >= 70:
+                        donut_color = "#F5D104"
+                    else:
+                        donut_color = "#28A745"
 
-                            col1, col2 = st.columns([2, 1])
-                            with col1:
-                                st.markdown(f"""
-                                    <div style="background-color: white; border-radius: 10px; padding: 20px; margin: 10px 0;">
-                                        <h3 style="color:#000000;">{row.get('Description','N/A')}</h3>
-                                        <p style="color:#000000;"><b>📆 Date In:</b> {row.get('Date In','N/A')}</p>
-                                        <p style="color:#000000;"><b>📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
-                                        <p style="color:#000000;"><b>📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
-                                        <p style="color:#000000;"><b>🧩 Part No:</b> {row.get('P/No','N/A')}</p>
-                                        <p style="color:#000000;"><b>🔧 Serial No:</b> {row.get('SN','N/A')}</p>
-                                        <p style="color:#000000;"><b>🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
-                                        <p style="color:#000000;"><b>📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
-                                        <p style="color:#000000;"><b>✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
-                                        <p style="color:#000000;"><b>🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
-                                        <p style="color:#000000;"><b>🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
-                                        <p style="color:#000000;"><b>📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
-                                    </div>
-                                """, unsafe_allow_html=True)
+                    col1, col2 = st.columns([2, 1])
+                    with col1:
+                        st.markdown(f"""
+                            <div style="background-color: white; border-radius: 10px; padding: 20px; margin: 10px 0;">
+                                <h3 style="color:#000000;">{row.get('Description','N/A')}</h3>
+                                <p style="color:#000000;"><b>📆 Date In:</b> {row.get('Date In','N/A')}</p>
+                                <p style="color:#000000;"><b>📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
+                                <p style="color:#000000;"><b>📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
+                                <p style="color:#000000;"><b>🧩 Part No:</b> {row.get('P/No','N/A')}</p>
+                                <p style="color:#000000;"><b>🔧 Serial No:</b> {row.get('SN','N/A')}</p>
+                                <p style="color:#000000;"><b>🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
+                                <p style="color:#000000;"><b>📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
+                                <p style="color:#000000;"><b>✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
+                                <p style="color:#000000;"><b>🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
+                                <p style="color:#000000;"><b>🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
+                                <p style="color:#000000;"><b>📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                            </div>
+                        """, unsafe_allow_html=True)
 
-                            with col2:
-                                chart_id = f"chart_{idx}"
-                                js_usage = json.dumps(usage)
-                                js_color = json.dumps(donut_color)
+                    with col2:
+                        chart_id = f"chart_{idx}"
+                        js_usage = json.dumps(usage)
+                        js_color = json.dumps(donut_color)
 
-                                html = f"""
+                        html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -325,16 +325,16 @@ else:
 }})();
 </script>
 """
-                                components.html(html, height=320)
-                            
-                            # Close button
-                            if st.button("Close Details", key=f"close_{idx}"):
-                                st.session_state[f"show_{idx}"] = False
-                                st.rerun()
-                        
-                        st.markdown("---")
+                        components.html(html, height=320)
                     
-                    st.markdown('</div>', unsafe_allow_html=True)
+                    # Close button
+                    if st.button("Close Details", key=f"close_{idx}"):
+                        st.session_state[f"show_{idx}"] = False
+                        st.rerun()
+                
+                st.markdown("---")
+            
+            st.markdown('</div>', unsafe_allow_html=True)
         elif st.session_state.search_results is not None:
             st.error("❌ No matching records found.")
         else:
