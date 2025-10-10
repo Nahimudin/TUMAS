@@ -177,10 +177,10 @@ else:
             result = st.session_state.search_results
             st.success(f"✅ Found {len(result)} matching record(s).")
 
-            # --- Black Table Background (header + rows) ---
+            # Add container background with white header row
             st.markdown("""
             <div style="background-color: black; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; background-color: black; border-radius: 5px; margin-bottom: 10px;">
+                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; background-color: #333; border-radius: 5px; margin-bottom: 10px;">
                     <div style="color: white; font-weight: bold;">Date In</div>
                     <div style="color: white; font-weight: bold;">Date Out</div>
                     <div style="color: white; font-weight: bold;">Ex-Aircraft</div>
@@ -190,15 +190,18 @@ else:
                     <div style="color: white; font-weight: bold;">SN</div>
                     <div style="color: white; font-weight: bold;">Action</div>
                 </div>
+            </div>
             """, unsafe_allow_html=True)
-
+            
+            # Create container for all rows
             container = st.container()
             with container:
-                # --- Row Background: Black ---
                 st.markdown('<div style="background-color: black; padding: 10px 20px 20px 20px; border-radius: 10px; margin-top: -20px;">', unsafe_allow_html=True)
                 
+                # Create table with buttons
                 for idx, row in result.iterrows():
                     cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
+                    
                     with cols[0]:
                         st.markdown(f"<p style='color:white;'><b>{row.get('Date In', 'N/A')}</b></p>", unsafe_allow_html=True)
                     with cols[1]:
@@ -217,46 +220,48 @@ else:
                         if st.button("Open", key=f"open_{idx}"):
                             st.session_state[f"show_{idx}"] = True
                 
-                    # --- Details section remains same ---
-                    if st.session_state.get(f"show_{idx}", False):
-                        max_cycles = 300
-                        usage = (
-                            min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                            if pd.notna(row.get('Cycles Since Installed'))
-                            else 0
-                        )
+                # Show detailed view if Open is clicked
+                if st.session_state.get(f"show_{idx}", False):
+                    max_cycles = 300
+                    usage = (
+                        min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                        if pd.notna(row.get('Cycles Since Installed'))
+                        else 0
+                    )
 
-                        if usage >= 90:
-                            donut_color = "#FF0000"
-                        elif usage >= 70:
-                            donut_color = "#F5D104"
-                        else:
-                            donut_color = "#28A745"
+                    # --- Color logic ---
+                    if usage >= 90:
+                        donut_color = "#FF0000"
+                    elif usage >= 70:
+                        donut_color = "#F5D104"
+                    else:
+                        donut_color = "#28A745"
 
-                        col1, col2 = st.columns([2, 1])
-                        with col1:
-                            st.markdown(f"""
-                                <div style="background-color: white; border-radius: 10px; padding: 20px; margin: 10px 0;">
-                                    <h3 style="color:#000000;">{row.get('Description','N/A')}</h3>
-                                    <p style="color:#000000;"><b>📆 Date In:</b> {row.get('Date In','N/A')}</p>
-                                    <p style="color:#000000;"><b>📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
-                                    <p style="color:#000000;"><b>📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
-                                    <p style="color:#000000;"><b>🧩 Part No:</b> {row.get('P/No','N/A')}</p>
-                                    <p style="color:#000000;"><b>🔧 Serial No:</b> {row.get('SN','N/A')}</p>
-                                    <p style="color:#000000;"><b>🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
-                                    <p style="color:#000000;"><b>📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
-                                    <p style="color:#000000;"><b>✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
-                                    <p style="color:#000000;"><b>🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
-                                    <p style="color:#000000;"><b>🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
-                                    <p style="color:#000000;"><b>📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
-                                </div>
-                            """, unsafe_allow_html=True)
+                    col1, col2 = st.columns([2, 1])
+                    with col1:
+                        st.markdown(f"""
+                            <div style="background-color: white; border-radius: 10px; padding: 20px; margin: 10px 0;">
+                                <h3 style="color:#000000;">{row.get('Description','N/A')}</h3>
+                                <p style="color:#000000;"><b>📆 Date In:</b> {row.get('Date In','N/A')}</p>
+                                <p style="color:#000000;"><b>📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
+                                <p style="color:#000000;"><b>📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
+                                <p style="color:#000000;"><b>🧩 Part No:</b> {row.get('P/No','N/A')}</p>
+                                <p style="color:#000000;"><b>🔧 Serial No:</b> {row.get('SN','N/A')}</p>
+                                <p style="color:#000000;"><b>🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
+                                <p style="color:#000000;"><b>📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
+                                <p style="color:#000000;"><b>✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
+                                <p style="color:#000000;"><b>🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
+                                <p style="color:#000000;"><b>🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
+                                <p style="color:#000000;"><b>📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                            </div>
+                        """, unsafe_allow_html=True)
 
-                        with col2:
-                            chart_id = f"chart_{idx}"
-                            js_usage = json.dumps(usage)
-                            js_color = json.dumps(donut_color)
-                            html = f"""
+                    with col2:
+                        chart_id = f"chart_{idx}"
+                        js_usage = json.dumps(usage)
+                        js_color = json.dumps(donut_color)
+
+                        html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -264,6 +269,7 @@ else:
   var usage = {js_usage};
   var donutColor = {js_color};
   var chartDiv = document.getElementById('{chart_id}');
+
   var data = [
     {{
       values: [1],
@@ -285,6 +291,7 @@ else:
       sort: false
     }}
   ];
+
   var layout = {{
     annotations: [{{ text: '0%', x:0.5, y:0.5, font:{{size:20, color:'white'}}, showarrow:false }}],
     margin: {{t:0,b:0,l:0,r:0}},
@@ -293,6 +300,7 @@ else:
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)'
   }};
+
   Plotly.newPlot(chartDiv, data, layout, {{displayModeBar:false}}).then(function() {{
     var max = Math.round(Math.min(Math.max(usage,0),100));
     var frames = [];
@@ -308,8 +316,10 @@ else:
         }}
       }});
     }}
+
     var totalDuration = 800;
     var frameDuration = Math.max(8, Math.floor(totalDuration / Math.max(1, frames.length)));
+
     Plotly.animate(chartDiv, frames, {{
       transition: {{ duration: frameDuration, easing: 'cubic-in-out' }},
       frame: {{ duration: frameDuration, redraw: true }},
@@ -319,13 +329,17 @@ else:
 }})();
 </script>
 """
-                            components.html(html, height=320)
-                        if st.button("Close Details", key=f"close_{idx}"):
-                            st.session_state[f"show_{idx}"] = False
-                            st.rerun()
-                        st.markdown("<hr style='border-color: #444; margin: 10px 0;'>", unsafe_allow_html=True)
+                        components.html(html, height=320)
+                    
+                    # Close button
+                    if st.button("Close Details", key=f"close_{idx}"):
+                        st.session_state[f"show_{idx}"] = False
+                        st.rerun()
+                
+                    st.markdown("<hr style='border-color: #444; margin: 10px 0;'>", unsafe_allow_html=True)
+                
                 st.markdown('</div>', unsafe_allow_html=True)
-
+        
         elif st.session_state.search_results is not None:
             st.error("❌ No matching records found.")
         else:
@@ -357,3 +371,5 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
+the attached image are result o above coding , i want the table to have black baground not like above please fix my code and dont change anything else but requested help...pleaseeeee
