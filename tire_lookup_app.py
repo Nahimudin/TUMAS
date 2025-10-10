@@ -180,16 +180,19 @@ else:
             # --- Summary Table with Open buttons ---
             st.markdown("""
                 <style>
-                .table-container {
+                .element-container:has(.table-row) {
                     background-color: black;
-                    padding: 20px;
+                    padding: 10px;
                     border-radius: 10px;
-                    margin: 20px 0;
+                }
+                .table-row {
+                    background-color: black !important;
                 }
                 </style>
             """, unsafe_allow_html=True)
             
-            st.markdown('<div class="table-container">', unsafe_allow_html=True)
+            # Add container background
+            st.markdown('<div style="background-color: black; padding: 20px; border-radius: 10px;">', unsafe_allow_html=True)
             
             # Create table with buttons
             for idx, row in result.iterrows():
