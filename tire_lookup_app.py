@@ -363,4 +363,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
-The table will now display correctly as a proper table with black text on white background, and the "open" buttons below will work to show the detailed information with the usage chart.
+
