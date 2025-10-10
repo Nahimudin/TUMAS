@@ -1,5 +1,4 @@
 
-```python
 import streamlit as st
 import pandas as pd
 import base64
@@ -364,3 +363,4 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
