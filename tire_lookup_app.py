@@ -180,7 +180,7 @@ else:
             # --- Summary Table with Open buttons ---
             st.markdown("""
                 <style>
-                .dataframe-container {
+                .table-container {
                     background-color: black;
                     padding: 20px;
                     border-radius: 10px;
@@ -189,24 +189,26 @@ else:
                 </style>
             """, unsafe_allow_html=True)
             
+            st.markdown('<div class="table-container">', unsafe_allow_html=True)
+            
             # Create table with buttons
             for idx, row in result.iterrows():
                 cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
                 
                 with cols[0]:
-                    st.write(f"**{row.get('Date In', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('Date In', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[1]:
-                    st.write(f"**{row.get('DATE OUT', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('DATE OUT', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[2]:
-                    st.write(f"**{row.get('Ex-Aircraft', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('Ex-Aircraft', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[3]:
-                    st.write(f"**{row.get('Description', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('Description', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[4]:
-                    st.write(f"**{row.get('W/O No', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('W/O No', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[5]:
-                    st.write(f"**{row.get('P/No', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('P/No', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[6]:
-                    st.write(f"**{row.get('SN', 'N/A')}**")
+                    st.markdown(f"<p style='color:white;'><b>{row.get('SN', 'N/A')}</b></p>", unsafe_allow_html=True)
                 with cols[7]:
                     if st.button("Open", key=f"open_{idx}"):
                         st.session_state[f"show_{idx}"] = True
@@ -327,9 +329,10 @@ else:
                         st.session_state[f"show_{idx}"] = False
                         st.rerun()
                 
-                st.markdown("---")
+                st.markdown("<hr style='border-color: #444; margin: 10px 0;'>", unsafe_allow_html=True)
             
             st.markdown('</div>', unsafe_allow_html=True)
+        
         elif st.session_state.search_results is not None:
             st.error("❌ No matching records found.")
         else:
