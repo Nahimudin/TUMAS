@@ -1,3 +1,5 @@
+
+```python
 import streamlit as st
 import pandas as pd
 import base64
@@ -65,8 +67,6 @@ section[data-testid="stSidebar"] .stRadio label { color: white !important; font-
 .cta-btn { background-color: #F5D104; color: #5C246E; font-size: 18px; padding: 12px 25px; border: none; border-radius: 8px; cursor:pointer; text-decoration: none; font-weight: bold; }
 .cta-btn:hover { background-color: #e1c800; }
 .footer { text-align: center; color: white; font-size: 14px; margin-top: 60px; opacity: 0.8; }
-.clickable-cell { cursor: pointer; color: #0066cc; text-decoration: underline; }
-.clickable-cell:hover { color: #004499; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -176,140 +176,94 @@ else:
                     # Create table data exactly like the Excel format
                     table_data = []
                     for idx, row in result.iterrows():
-                        # Format Ex-Aircraft with "open" in the same cell
-                        ex_aircraft = f"{row.get('Ex-Aircraft', 'N/A')} open"
+                        # Format dates properly
+                        date_in = str(row.get('Date In', 'N/A'))
+                        if 'T' in date_in:
+                            date_in = date_in.split('T')[0]
+                        elif ' ' in date_in:
+                            date_in = date_in.split(' ')[0]
+                        
+                        date_out = str(row.get('DATE OUT', 'N/A'))
+                        if 'T' in date_out:
+                            date_out = date_out.split('T')[0]
+                        elif ' ' in date_out:
+                            date_out = date_out.split(' ')[0]
                         
                         table_data.append({
-                            'Seq. No': row.get('Seq. No', idx + 1),  # Use Seq. No from data or index
-                            'Date In': row.get('Date In', 'N/A'),
-                            'DATE OUT': row.get('DATE OUT', 'N/A'),
+                            'Seq. No': row.get('Seq. No', idx + 1),
+                            'Date In': date_in,
+                            'DATE OUT': date_out,
                             'W/O No': row.get('W/O No', 'N/A'),
                             'Description': row.get('Description', 'N/A'),
                             'P/No': row.get('P/No', 'N/A'),
                             'SN': row.get('SN', 'N/A'),
-                            'Ex-Aircraft': ex_aircraft
+                            'Ex-Aircraft': row.get('Ex-Aircraft', 'N/A')
                         })
                     
-                    # Display the table
+                    # Display the table using Streamlit's native dataframe
                     table_df = pd.DataFrame(table_data)
+                    st.dataframe(table_df, use_container_width=True, hide_index=True)
                     
-                    # Make the Ex-Aircraft column clickable
-                    def make_clickable(val):
-                        if 'open' in str(val):
-                            aircraft = str(val).replace(' open', '')
-                            return f'<span class="clickable-cell" onclick="openDetails(\'{aircraft}\', {table_data.index([x for x in table_data if x["Ex-Aircraft"] == val][0])})">{val}</span>'
-                        return val
+                    # Add clickable buttons for each row
+                    st.markdown("**Select a record to view details:**")
                     
-                    # Display table with HTML formatting
-                    st.markdown("**Click on 'open' in the Ex-Aircraft column to view details:**")
-                    
-                    # Create HTML table
-                    html_table = "<table style='width:100%; border-collapse: collapse; background-color: white;'>"
-                    
-                    # Header row
-                    html_table += "<tr style='background-color: #f0f0f0; border-bottom: 2px solid #ddd;'>"
-                    for col in table_df.columns:
-                        html_table += f"<th style='padding: 10px; text-align: left; border: 1px solid #ddd; font-weight: bold;'>{col}</th>"
-                    html_table += "</tr>"
-                    
-                    # Data rows
-                    for idx, row in table_df.iterrows():
-                        html_table += "<tr>"
-                        for col_idx, col in enumerate(table_df.columns):
-                            if col == 'Ex-Aircraft':
-                                # Make Ex-Aircraft cell clickable
-                                aircraft = str(row[col]).replace(' open', '')
-                                html_table += f'<td style="padding: 10px; border: 1px solid #ddd;"><span class="clickable-cell" onclick="openDetails(\'{aircraft}\', {idx})">{row[col]}</span></td>'
-                            else:
-                                html_table += f"<td style='padding: 10px; border: 1px solid #ddd;'>{row[col]}</td>"
-                        html_table += "</tr>"
-                    
-                    html_table += "</table>"
-                    
-                    # Add JavaScript for click handling
-                    html_table += """
-                    <script>
-                    function openDetails(aircraft, rowIndex) {
-                        // Create a button click event for Streamlit
-                        var button = document.createElement('button');
-                        button.style.display = 'none';
-                        button.id = 'detail_button_' + rowIndex;
-                        button.onclick = function() { 
-                            window.parent.postMessage({
-                                type: 'streamlit:setComponentValue',
-                                key: 'open_details',
-                                value: rowIndex
-                            }, '*');
-                        };
-                        document.body.appendChild(button);
-                        button.click();
-                        document.body.removeChild(button);
-                    }
-                    </script>
-                    """
-                    
-                    st.markdown(html_table, unsafe_allow_html=True)
-                    
-                    # Handle detail opening
-                    if "selected_row" not in st.session_state:
-                        st.session_state.selected_row = None
-                    
-                    # Create hidden buttons for each row
-                    for idx in range(len(table_data)):
-                        if st.button("", key=f"hidden_btn_{idx}", help="Hidden button"):
-                            st.session_state.selected_row = idx
-                            st.rerun()
-                    
-                    # Show details if a row is selected
-                    if st.session_state.selected_row is not None:
-                        selected_idx = st.session_state.selected_row
-                        original_row = result.iloc[selected_idx]
-                        
-                        # Calculate usage
-                        max_cycles = 300
-                        usage = (
-                            min((original_row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                            if pd.notna(original_row.get('Cycles Since Installed'))
-                            else 0
-                        )
-                        
-                        # Color logic
-                        if usage >= 90:
-                            donut_color = "#FF0000"
-                        elif usage >= 70:
-                            donut_color = "#F5D104"
-                        else:
-                            donut_color = "#28A745"
-                        
-                        # Display full details
-                        st.markdown("---")
-                        st.markdown("### 📊 Detailed Information")
-                        
-                        col1, col2 = st.columns([2, 1])
-                        with col1:
-                            st.markdown(f"""
-                                <div class="result-card">
-                                    <h3 style="color:#5C246E;">{original_row.get('Description','N/A')}</h3>
-                                    <p><b style="color:#5C246E;">Date In:</b> {original_row.get('Date In','N/A')}</p>
-                                    <p><b style="color:#5C246E;">Date Out:</b> {original_row.get('DATE OUT','N/A')}</p>
-                                    <p><b style="color:#5C246E;">W/O No:</b> {original_row.get('W/O No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">Part No:</b> {original_row.get('P/No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">Serial No:</b> {original_row.get('SN','N/A')}</p>
-                                    <p><b style="color:#5C246E;">TC Remark:</b> {original_row.get('TC Remark','N/A')}</p>
-                                    <p><b style="color:#5C246E;">Removal Date:</b> {original_row.get('Removal Date','N/A')}</p>
-                                    <p><b style="color:#5C246E;">Ex-Aircraft:</b> {original_row.get('Ex-Aircraft','N/A')}</p>
-                                    <p><b style="color:#5C246E;">AJL No:</b> {original_row.get('AJL No','N/A')}</p>
-                                    <p><b style="color:#5C246E;">Cycles Since Installed:</b> {original_row.get('Cycles Since Installed','0')}</p>
-                                    <p><b style="color:#5C246E;">Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
-                                </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with col2:
-                            chart_id = f"chart_{selected_idx}_{id(original_row)}"
-                            js_usage = json.dumps(usage)
-                            js_color = json.dumps(donut_color)
-                            
-                            html = f"""
+                    # Create buttons in a grid
+                    num_buttons_per_row = 5
+                    for i in range(0, len(table_data), num_buttons_per_row):
+                        cols = st.columns(num_buttons_per_row)
+                        for j, col in enumerate(cols):
+                            if i + j < len(table_data):
+                                with col:
+                                    aircraft = table_data[i + j]['Ex-Aircraft']
+                                    if st.button(f"Open {aircraft}", key=f"open_{i + j}"):
+                                        # Get the original row data
+                                        original_row = result.iloc[i + j]
+                                        
+                                        # Calculate usage
+                                        max_cycles = 300
+                                        usage = (
+                                            min((original_row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                                            if pd.notna(original_row.get('Cycles Since Installed'))
+                                            else 0
+                                        )
+                                        
+                                        # Color logic
+                                        if usage >= 90:
+                                            donut_color = "#FF0000"
+                                        elif usage >= 70:
+                                            donut_color = "#F5D104"
+                                        else:
+                                            donut_color = "#28A745"
+                                        
+                                        # Display full details
+                                        st.markdown("---")
+                                        st.markdown("### 📊 Detailed Information")
+                                        
+                                        col1, col2 = st.columns([2, 1])
+                                        with col1:
+                                            st.markdown(f"""
+                                                <div class="result-card">
+                                                    <h3 style="color:#5C246E;">{original_row.get('Description','N/A')}</h3>
+                                                    <p><b style="color:#5C246E;">Date In:</b> {original_row.get('Date In','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">Date Out:</b> {original_row.get('DATE OUT','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">W/O No:</b> {original_row.get('W/O No','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">Part No:</b> {original_row.get('P/No','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">Serial No:</b> {original_row.get('SN','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">TC Remark:</b> {original_row.get('TC Remark','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">Removal Date:</b> {original_row.get('Removal Date','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">Ex-Aircraft:</b> {original_row.get('Ex-Aircraft','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">AJL No:</b> {original_row.get('AJL No','N/A')}</p>
+                                                    <p><b style="color:#5C246E;">Cycles Since Installed:</b> {original_row.get('Cycles Since Installed','0')}</p>
+                                                    <p><b style="color:#5C246E;">Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                                                </div>
+                                            """, unsafe_allow_html=True)
+                                        
+                                        with col2:
+                                            chart_id = f"chart_{i + j}_{id(original_row)}"
+                                            js_usage = json.dumps(usage)
+                                            js_color = json.dumps(donut_color)
+                                            
+                                            html = f"""
 <div id="{chart_id}" style="width:100%;height:300px;"></div>
 <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
 <script>
@@ -377,12 +331,7 @@ else:
 }})();
 </script>
 """
-                            components.html(html, height=320)
-                        
-                        # Add close button
-                        if st.button("❌ Close Details"):
-                            st.session_state.selected_row = None
-                            st.rerun()
+                                            components.html(html, height=320)
                     
                 else:
                     st.error("❌ No matching records found.")
