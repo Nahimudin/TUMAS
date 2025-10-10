@@ -181,18 +181,13 @@ else:
             st.markdown("""
                 <style>
                 .dataframe-container {
-                    background-color: white;
+                    background-color: black;
                     padding: 20px;
                     border-radius: 10px;
                     margin: 20px 0;
                 }
-                .dataframe {
-                    color: black !important;
-                }
                 </style>
             """, unsafe_allow_html=True)
-            
-            st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
             
             # Create table with buttons
             for idx, row in result.iterrows():
