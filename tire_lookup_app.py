@@ -132,3 +132,75 @@ else:
             df.columns = (
                 df.columns
                 .astype(str)
+                .str.strip()
+                .str.replace('"', '', regex=False)
+                .str.replace("'", '', regex=False)
+                .str.replace('\n', ' ', regex=False)
+            )
+        except Exception as e:
+            st.error(f"⚠️ Could not load tire database: {e}")
+            df = pd.DataFrame()
+
+        # Initialize session state for search results
+        if "search_results" not in st.session_state:
+            st.session_state.search_results = None
+
+        # --- FILTER FORM ---
+        with st.form("search_form"):
+            st.markdown("Enter one or more search criteria below:")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                serial = st.text_input("🔧 Serial Number (SN)")
+            with col2:
+                part_no = st.text_input("🧩 Part Number (P/No)")
+            with col3:
+                wo_no = st.text_input("📄 Work Order No (W/O No)")
+
+            submitted = st.form_submit_button("Search")
+
+        if submitted:
+            if df.empty:
+                st.error("❌ Tire database is empty or not loaded.")
+            else:
+                mask = pd.Series([True] * len(df))
+                if serial:
+                    mask &= df['SN'].astype(str).str.contains(serial.strip(), case=False, na=False)
+                if part_no:
+                    mask &= df['P/No'].astype(str).str.contains(part_no.strip(), case=False, na=False)
+                if wo_no:
+                    mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
+
+                st.session_state.search_results = df[mask]
+
+        # --- DISPLAY RESULTS ---
+        if st.session_state.search_results is not None and not st.session_state.search_results.empty:
+            result = st.session_state.search_results
+            st.success(f"✅ Found {len(result)} matching record(s).")
+
+            # Full black background table container (header stays as before)
+            st.markdown("""
+            <div style="background-color: black; padding: 15px 25px; border-radius: 12px; margin: 25px 0;">
+                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; border-bottom: 2px solid #C42454;">
+                    <div style="color: white; font-weight: bold;">Date In</div>
+                    <div style="color: white; font-weight: bold;">Date Out</div>
+                    <div style="color: white; font-weight: bold;">Ex-Aircraft</div>
+                    <div style="color: white; font-weight: bold;">Description</div>
+                    <div style="color: white; font-weight: bold;">W/O No</div>
+                    <div style="color: white; font-weight: bold;">P/No</div>
+                    <div style="color: white; font-weight: bold;">SN</div>
+                    <div style="color: white; font-weight: bold;">Action</div>
+                </div>
+            """, unsafe_allow_html=True)
+
+            # ----- ROWS: use real Streamlit buttons so "Open" works -----
+            for idx, row in result.iterrows():
+                # create 8 columns with same relative widths
+                cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
+
+                # keep visual style similar by using markdown per cell (white text on black)
+                with cols[0]:
+                    st.markdown(f"<div style='color:white; padding:8px 0; border-bottom:1px solid #444;'>{row.get('Date In', 'N/A')}</div>", unsafe_allow_html=True)
+                with cols[1]:
+                    st.markdown(f"<div style='color:white; padding:8px 0; border-bottom:1px solid #444;'>{row.get('DATE OUT', 'N/A')}</div>", unsafe_allow_html=True)
+                with cols[2]:
+                    st.markdown(f"<div style='color:white; padding:8px 0; border-bottom:1px solid #444;'>{row.get('Ex-Aircraft', 'N/A')}</div>", unsafe_allow_html=True)
