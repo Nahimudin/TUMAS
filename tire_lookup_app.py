@@ -194,9 +194,22 @@ else:
             """, unsafe_allow_html=True)
             
             # Create container for all rows
-            container = st.container()
-            with container:
-                st.markdown('<div style="background-color: black; padding: 10px 20px 20px 20px; border-radius: 10px; margin-top: -20px;">', unsafe_allow_html=True)
+            for idx, row in result.iterrows():
+    
+               st.markdown(f"""
+        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 8px 10px; background-color: black; border-bottom: 1px solid #444;">
+            <div style="color: white;">{row.get('Date In', 'N/A')}</div>
+            <div style="color: white;">{row.get('DATE OUT', 'N/A')}</div>
+            <div style="color: white;">{row.get('Ex-Aircraft', 'N/A')}</div>
+            <div style="color: white;">{row.get('Description', 'N/A')}</div>
+            <div style="color: white;">{row.get('W/O No', 'N/A')}</div>
+            <div style="color: white;">{row.get('P/No', 'N/A')}</div>
+            <div style="color: white;">{row.get('SN', 'N/A')}</div>
+            <div>{'<button style="background-color:#222; color:white; border-radius:5px; padding:5px 10px;">Open</button>'}</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
                 
                 # Create table with buttons
                 for idx, row in result.iterrows():
@@ -371,5 +384,6 @@ st.markdown("""
     Developed for Internship Project (TUMS)
 </div>
 """, unsafe_allow_html=True)
+
 
 
