@@ -171,22 +171,7 @@ else:
                 if not result.empty:
                     st.success(f"✅ Found {len(result)} matching record(s).")
 
-                    # --- Summary Table ---
-                    summary_data = []
-                    for idx, row in result.iterrows():
-                        summary_data.append({
-                            'Date In': row.get('Date In', 'N/A'),
-                            'Date Out': row.get('DATE OUT', 'N/A'),
-                            'Ex-Aircraft': row.get('Ex-Aircraft', 'N/A'),
-                            'Description': row.get('Description', 'N/A'),
-                            'W/O No': row.get('W/O No', 'N/A'),
-                            'P/No': row.get('P/No', 'N/A'),
-                            'SN': row.get('SN', 'N/A')
-                        })
-                    
-                    summary_df = pd.DataFrame(summary_data)
-                    
-                    # Display table with white background and black text
+                    # --- Summary Table with Open buttons ---
                     st.markdown("""
                         <style>
                         .dataframe-container {
@@ -202,47 +187,62 @@ else:
                     """, unsafe_allow_html=True)
                     
                     st.markdown('<div class="dataframe-container">', unsafe_allow_html=True)
-                    st.dataframe(summary_df, use_container_width=True)
-                    st.markdown('</div>', unsafe_allow_html=True)
-
-                    st.markdown("---")
-                    st.subheader("📄 Detailed Records")
-                    st.markdown("*Click 'Open' to view full details for each record*")
-
-                    # --- Expandable Details ---
+                    
+                    # Create table with buttons
                     for idx, row in result.iterrows():
-                        max_cycles = 300
-                        usage = (
-                            min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
-                            if pd.notna(row.get('Cycles Since Installed'))
-                            else 0
-                        )
+                        cols = st.columns([1.2, 1.2, 1.2, 1.5, 1, 1, 1, 0.8])
+                        
+                        with cols[0]:
+                            st.write(f"**{row.get('Date In', 'N/A')}**")
+                        with cols[1]:
+                            st.write(f"**{row.get('DATE OUT', 'N/A')}**")
+                        with cols[2]:
+                            st.write(f"**{row.get('Ex-Aircraft', 'N/A')}**")
+                        with cols[3]:
+                            st.write(f"**{row.get('Description', 'N/A')}**")
+                        with cols[4]:
+                            st.write(f"**{row.get('W/O No', 'N/A')}**")
+                        with cols[5]:
+                            st.write(f"**{row.get('P/No', 'N/A')}**")
+                        with cols[6]:
+                            st.write(f"**{row.get('SN', 'N/A')}**")
+                        with cols[7]:
+                            if st.button("Open", key=f"open_{idx}"):
+                                st.session_state[f"show_{idx}"] = True
+                        
+                        # Show detailed view if Open is clicked
+                        if st.session_state.get(f"show_{idx}", False):
+                            max_cycles = 300
+                            usage = (
+                                min((row.get('Cycles Since Installed', 0) / max_cycles) * 100, 100)
+                                if pd.notna(row.get('Cycles Since Installed'))
+                                else 0
+                            )
 
-                        # --- Color logic ---
-                        if usage >= 90:
-                            donut_color = "#FF0000"
-                        elif usage >= 70:
-                            donut_color = "#F5D104"
-                        else:
-                            donut_color = "#28A745"
+                            # --- Color logic ---
+                            if usage >= 90:
+                                donut_color = "#FF0000"
+                            elif usage >= 70:
+                                donut_color = "#F5D104"
+                            else:
+                                donut_color = "#28A745"
 
-                        with st.expander(f"🔍 Open - SN: {row.get('SN','N/A')} | P/No: {row.get('P/No','N/A')} | W/O: {row.get('W/O No','N/A')}"):
                             col1, col2 = st.columns([2, 1])
                             with col1:
                                 st.markdown(f"""
-                                    <div class="result-card">
-                                        <h3 style="color:#5C246E;">{row.get('Description','N/A')}</h3>
-                                        <p><b style="color:#5C246E;">📆 Date In:</b> {row.get('Date In','N/A')}</p>
-                                        <p><b style="color:#5C246E;">📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
-                                        <p><b style="color:#5C246E;">📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🧩 Part No:</b> {row.get('P/No','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🔧 Serial No:</b> {row.get('SN','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
-                                        <p><b style="color:#5C246E;">📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
-                                        <p><b style="color:#5C246E;">✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
-                                        <p><b style="color:#5C246E;">🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
-                                        <p><b style="color:#5C246E;">📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
+                                    <div style="background-color: white; border-radius: 10px; padding: 20px; margin: 10px 0;">
+                                        <h3 style="color:#000000;">{row.get('Description','N/A')}</h3>
+                                        <p style="color:#000000;"><b>📆 Date In:</b> {row.get('Date In','N/A')}</p>
+                                        <p style="color:#000000;"><b>📆 Date Out:</b> {row.get('DATE OUT','N/A')}</p>
+                                        <p style="color:#000000;"><b>📋 W/O No:</b> {row.get('W/O No','N/A')}</p>
+                                        <p style="color:#000000;"><b>🧩 Part No:</b> {row.get('P/No','N/A')}</p>
+                                        <p style="color:#000000;"><b>🔧 Serial No:</b> {row.get('SN','N/A')}</p>
+                                        <p style="color:#000000;"><b>🛠️ TC Remark:</b> {row.get('TC Remark','N/A')}</p>
+                                        <p style="color:#000000;"><b>📅 Removal Date:</b> {row.get('Removal Date','N/A')}</p>
+                                        <p style="color:#000000;"><b>✈️ Ex-Aircraft:</b> {row.get('Ex-Aircraft','N/A')}</p>
+                                        <p style="color:#000000;"><b>🔢 AJL No:</b> {row.get('AJL No','N/A')}</p>
+                                        <p style="color:#000000;"><b>🔄 Cycles Since Installed:</b> {row.get('Cycles Since Installed','0')}</p>
+                                        <p style="color:#000000;"><b>📊 Usage:</b> {usage:.1f}% of {max_cycles} cycles</p>
                                     </div>
                                 """, unsafe_allow_html=True)
 
@@ -320,6 +320,15 @@ else:
 </script>
 """
                                 components.html(html, height=320)
+                            
+                            # Close button
+                            if st.button("Close Details", key=f"close_{idx}"):
+                                st.session_state[f"show_{idx}"] = False
+                                st.rerun()
+                        
+                        st.markdown("---")
+                    
+                    st.markdown('</div>', unsafe_allow_html=True)
                 else:
                     st.error("❌ No matching records found.")
         else:
