@@ -372,4 +372,3 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
-the attached image are result o above coding , i want the table to have black baground not like above please fix my code and dont change anything else but requested help...pleaseeeee
