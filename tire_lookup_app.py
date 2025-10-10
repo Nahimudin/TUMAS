@@ -171,43 +171,32 @@ else:
                     mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
 
                 st.session_state.search_results = df[mask]
-# Display results if they exist
-if st.session_state.search_results is not None and not st.session_state.search_results.empty:
-    result = st.session_state.search_results
-    st.success(f"✅ Found {len(result)} matching record(s).")
 
-    # Full black background table container
-    st.markdown("""
-    <div style="background-color: black; padding: 15px 25px; border-radius: 12px; margin: 25px 0;">
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; border-bottom: 2px solid #C42454;">
-            <div style="color: white; font-weight: bold;">Date In</div>
-            <div style="color: white; font-weight: bold;">Date Out</div>
-            <div style="color: white; font-weight: bold;">Ex-Aircraft</div>
-            <div style="color: white; font-weight: bold;">Description</div>
-            <div style="color: white; font-weight: bold;">W/O No</div>
-            <div style="color: white; font-weight: bold;">P/No</div>
-            <div style="color: white; font-weight: bold;">SN</div>
-            <div style="color: white; font-weight: bold;">Action</div>
-        </div>
-    """, unsafe_allow_html=True)
+        # Display results if they exist
+        if st.session_state.search_results is not None and not st.session_state.search_results.empty:
+            result = st.session_state.search_results
+            st.success(f"✅ Found {len(result)} matching record(s).")
 
-    # Create container for all rows
-    for idx, row in result.iterrows():
-        st.markdown(f"""
-        <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 8px 10px; background-color: black; border-bottom: 1px solid #444;">
-            <div style="color: white;">{row.get('Date In', 'N/A')}</div>
-            <div style="color: white;">{row.get('DATE OUT', 'N/A')}</div>
-            <div style="color: white;">{row.get('Ex-Aircraft', 'N/A')}</div>
-            <div style="color: white;">{row.get('Description', 'N/A')}</div>
-            <div style="color: white;">{row.get('W/O No', 'N/A')}</div>
-            <div style="color: white;">{row.get('P/No', 'N/A')}</div>
-            <div style="color: white;">{row.get('SN', 'N/A')}</div>
-            <div>{'<button style="background-color:#222; color:white; border-radius:5px; padding:5px 10px;">Open</button>'}</div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    st.markdown("</div>", unsafe_allow_html=True)
-
+            # Add container background with white header row
+            st.markdown("""
+            <div style="background-color: black; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                <div style="display: grid; grid-template-columns: 1.2fr 1.2fr 1.2fr 1.5fr 1fr 1fr 1fr 0.8fr; gap: 10px; padding: 10px; background-color: #333; border-radius: 5px; margin-bottom: 10px;">
+                    <div style="color: white; font-weight: bold;">Date In</div>
+                    <div style="color: white; font-weight: bold;">Date Out</div>
+                    <div style="color: white; font-weight: bold;">Ex-Aircraft</div>
+                    <div style="color: white; font-weight: bold;">Description</div>
+                    <div style="color: white; font-weight: bold;">W/O No</div>
+                    <div style="color: white; font-weight: bold;">P/No</div>
+                    <div style="color: white; font-weight: bold;">SN</div>
+                    <div style="color: white; font-weight: bold;">Action</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # Create container for all rows
+            container = st.container()
+            with container:
+                st.markdown('<div style="background-color: black; padding: 10px 20px 20px 20px; border-radius: 10px; margin-top: -20px;">', unsafe_allow_html=True)
                 
                 # Create table with buttons
                 for idx, row in result.iterrows():
@@ -383,3 +372,4 @@ st.markdown("""
 </div>
 """, unsafe_allow_html=True)
 
+the attached image are result o above coding , i want the table to have black baground not like above please fix my code and dont change anything else but requested help...pleaseeeee
