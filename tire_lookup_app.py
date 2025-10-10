@@ -141,6 +141,10 @@ else:
             st.error(f"⚠️ Could not load tire database: {e}")
             df = pd.DataFrame()
 
+        # Initialize session state for search results
+        if "search_results" not in st.session_state:
+            st.session_state.search_results = None
+        
         # --- FILTER FORM ---
         with st.form("search_form"):
             st.markdown("Enter one or more search criteria below:")
@@ -166,9 +170,11 @@ else:
                 if wo_no:
                     mask &= df['W/O No'].astype(str).str.contains(wo_no.strip(), case=False, na=False)
 
-                result = df[mask]
+                st.session_state.search_results = df[mask]
 
-                if not result.empty:
+        # Display results if they exist
+        if st.session_state.search_results is not None and not st.session_state.search_results.empty:
+            result = st.session_state.search_results
                     st.success(f"✅ Found {len(result)} matching record(s).")
 
                     # --- Summary Table with Open buttons ---
@@ -329,8 +335,8 @@ else:
                         st.markdown("---")
                     
                     st.markdown('</div>', unsafe_allow_html=True)
-                else:
-                    st.error("❌ No matching records found.")
+        elif st.session_state.search_results is not None:
+            st.error("❌ No matching records found.")
         else:
             st.info("ℹ️ Enter one or more search fields above to find tire details.")
 
