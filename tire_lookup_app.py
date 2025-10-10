@@ -1054,8 +1054,3 @@ else:
 
         elif st.session_state.search_results is not None:
             st.error("
-
-
-
-No file chosenNo file chosen
-ChatGPT can make mistakes. Check important info.
